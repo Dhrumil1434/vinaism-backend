@@ -10,7 +10,15 @@
     "build": "tsc",
     "start": "ts-node --loader ts-node/esm src/index.ts",
     "lint": "eslint . --ext .ts",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "db:pull": "drizzle-kit pull",
+    "db:push": "drizzle-kit push",
+    "db:check": "drizzle-kit check",
+    "db:up": "drizzle-kit up",
+    "db:init": "drizzle-kit init"
   },
   "lint-staged": {
     "**/*.ts": [
