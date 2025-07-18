@@ -40,7 +40,7 @@ class App {
   }
 
   private setRoutes(): void {
-    this.app.get('/', (req: Request, res: Response) => {
+    this.app.get('/', (res: Response) => {
       res.send('API is running!');
     });
     // Add more routes here or import from separate files
