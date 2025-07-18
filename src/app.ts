@@ -18,8 +18,6 @@ class App {
 
   private setMiddlewares(): void {
     this.app.use(compression());
-    const abc = 30;
-
     this.app.use(
       rateLimit({
         windowMs: 10 * 60 * 1000, // 15 mins
