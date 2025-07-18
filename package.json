@@ -2,12 +2,13 @@
   "name": "vinaism-backend",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "husky install",
-    "dev": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
+    "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "start": "ts-node src/index.ts",
+    "start": "ts-node --loader ts-node/esm src/index.ts",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write ."
   },
@@ -37,6 +38,7 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
+    "drizzle-orm": "^0.44.3",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-rate-limit": "^8.0.0",
@@ -45,7 +47,9 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.3",
     "morgan": "^1.10.0",
-    "multer": "^2.0.1"
+    "multer": "^2.0.1",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.14.2"
   },
   "devDependencies": {
     "@types/compression": "^1.8.1",
@@ -53,6 +57,7 @@
     "@types/node": "^24.0.14",
     "@typescript-eslint/eslint-plugin": "^8.37.0",
     "@typescript-eslint/parser": "^8.37.0",
+    "drizzle-kit": "^0.31.4",
     "eslint": "^9.31.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.5.1",
@@ -63,6 +68,7 @@
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   }
 }

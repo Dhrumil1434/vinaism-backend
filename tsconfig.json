@@ -6,8 +6,8 @@
       "@middleware-core": ["middlewares/index.ts"]
     },
     /* Language and Environment */
-    "target": "ES2016" /* Specifies the target ECMAScript version. */,
-    "module": "commonjs" /* Sets the module system for the project. */,
+    "target": "ES2022" /* Specifies the target ECMAScript version. */,
+    "module": "ES2022" /* Sets the module system for the project. */,
     "esModuleInterop": true /* Enables compatibility between CommonJS and ES Modules. */,
     "forceConsistentCasingInFileNames": true /* Ensures consistent file name casing across the project. */,
     "outDir": "./dist",
@@ -33,6 +33,7 @@
 
     /* Modules */
     "moduleResolution": "node" /* Determines how modules are resolved. */,
+    "moduleDetection": "force" /* Enables module detection for better tree-shaking. */,
     "resolveJsonModule": true /* Allows importing JSON files as modules. */,
 
     /* Emit */
