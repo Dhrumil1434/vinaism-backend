@@ -3,7 +3,8 @@
     "baseUrl": "./src",
     "paths": {
       "@utils-core": ["utils/index.ts"],
-      "@middleware-core": ["middlewares/index.ts"]
+      "@middleware-core": ["middlewares/index.ts"],
+      "@schemas": ["schema/index.ts"]
     },
     /* Language and Environment */
     "target": "ES2022" /* Specifies the target ECMAScript version. */,
