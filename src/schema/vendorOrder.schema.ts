@@ -28,7 +28,7 @@ export const vendorOrders = mysqlTable('vendor_orders', {
   approvedByUserId: int('approved_by_user_id').references(() => users.userId, {
     onDelete: 'set null',
   }),
-  orderDate: timestamps.created_at, // Using createdAt as orderDate
+  orderDate: timestamps.createdAt, // Using createdAt as orderDate
   returnFormId: int('return_form_id'), // Assuming this would reference another vendor_order_id, handle self-reference in relations if needed.
   ...timestamps, // Has its own createdAt/updatedAt
 });

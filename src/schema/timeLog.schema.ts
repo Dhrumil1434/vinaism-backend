@@ -11,8 +11,8 @@ export const timeLogs = mysqlTable('time_logs', {
   workerId: int('worker_id')
     .references(() => workers.workerId, { onDelete: 'restrict' })
     .notNull(),
-  startTime: timestamps.created_at, // Using createdAt helper for start_time
-  endTime: timestamps.updated_at, // Using updatedAt helper for end_time (or define a new timestamp column)
+  startTime: timestamps.createdAt, // Using createdAt helper for start_time
+  endTime: timestamps.updatedAt, // Using updatedAt helper for end_time (or define a new timestamp column)
   hoursWorked: decimal('hours_worked', { precision: 5, scale: 2 }).notNull(),
   notes: text('notes'),
   ...timestamps, // Has its own createdAt/updatedAt
