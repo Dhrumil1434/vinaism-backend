@@ -1,0 +1,1 @@
+ALTER TABLE `vendors` MODIFY COLUMN `vendor_id` int AUTO_INCREMENT NOT NULL;

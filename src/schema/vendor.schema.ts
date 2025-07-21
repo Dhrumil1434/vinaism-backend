@@ -1,10 +1,10 @@
-import { mysqlTable, varchar } from 'drizzle-orm/mysql-core';
+import { int, mysqlTable, varchar } from 'drizzle-orm/mysql-core';
 import { timestamps } from './helpers/column.helpers'; // Assuming this helper provides createdAt and updatedAt
 import { users } from './user.schema'; // Assuming your users schema is in user.schema.ts
 import { vendorCategories } from './vendorCategory.schema';
 
 export const vendors = mysqlTable('vendors', {
-  vendorId: varchar('vendor_id', { length: 255 }).notNull().primaryKey(), // Primary Key
+  vendorId: int('vendor_id').autoincrement().primaryKey(),
   userId: varchar('user_id', { length: 255 }).references(() => users.userId, {
     onDelete: 'set null',
   }),
