@@ -15,6 +15,13 @@
       "when": 1753086296058,
       "tag": "0001_small_cerebro",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1753087420054,
+      "tag": "0002_fancy_ultron",
+      "breakpoints": true
     }
   ]
 }
