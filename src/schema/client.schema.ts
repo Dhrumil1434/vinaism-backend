@@ -1,0 +1,12 @@
+import { mysqlTable, int, varchar } from 'drizzle-orm/mysql-core';
+import { timestamps } from './helpers/column.helpers';
+import { users } from './user.schema';
+
+export const client = mysqlTable('clients', {
+  clientId: int('client_id').autoincrement().primaryKey(),
+  userId: varchar('user_id', { length: 255 }).references(() => users.userId),
+  gstNumber: varchar('gst_number', { length: 150 }).notNull(),
+  billingFirmName: varchar('billing_firm_name', { length: 150 }).notNull(),
+  officeMobileNumber: varchar('office_mobile_number', { length: 20 }).notNull(),
+  ...timestamps,
+});
