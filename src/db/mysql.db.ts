@@ -7,5 +7,5 @@ const poolConnection = mysql.createPool({
   uri: process.env['DATABASE_URL']!,
 });
 
-const db = drizzle(poolConnection);
+const db = drizzle(poolConnection, { casing: 'snake_case' });
 export { db, poolConnection };
