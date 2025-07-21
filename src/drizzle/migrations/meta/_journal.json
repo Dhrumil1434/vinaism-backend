@@ -71,6 +71,13 @@
       "when": 1753093159144,
       "tag": "0009_wakeful_hellcat",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1753093763717,
+      "tag": "0010_small_toad",
+      "breakpoints": true
     }
   ]
 }
