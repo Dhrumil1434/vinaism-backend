@@ -12,7 +12,7 @@ CREATE TABLE `addresses` (
 	`is_active` boolean DEFAULT true,
 	`updated_at` timestamp,
 	`created_at` timestamp NOT NULL DEFAULT (now()),
-	`deleted_at` timestamp,
+	`deleted_at` timestamp NULL,
 	CONSTRAINT `addresses_address_id` PRIMARY KEY(`address_id`)
 );
 --> statement-breakpoint

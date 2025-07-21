@@ -26,6 +26,5 @@ export const activityLogs = mysqlTable('activity_logs', {
   resourceId: varchar('resource_id', { length: 255 }), // Remains varchar for polymorphic reference
   details: text('details'),
   ipAddress: varchar('ip_address', { length: 45 }), // IPv4 or IPv6
-  actionTimestamp: timestamps.created_at, // Using createdAt for action_timestamp
-  ...timestamps, // Has its own createdAt/updatedAt
+  actionTimestamp: timestamps.createdAt, // Using createdAt for action_timestamp
 });

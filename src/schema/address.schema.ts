@@ -1,30 +1,35 @@
-import { mysqlTable, varchar, mysqlEnum } from 'drizzle-orm/mysql-core';
-import { timestamps } from './helpers/column.helpers';
+// src/schema/address.schema.ts
+import {
+  mysqlTable,
+  int,
+  varchar,
+  mysqlEnum,
+  boolean,
+} from 'drizzle-orm/mysql-core';
+import { timestamps } from './helpers/column.helpers'; // Make sure this path is correct
 
 export const addresses = mysqlTable('addresses', {
-  addressId: varchar('address_id', { length: 255 }).notNull().primaryKey(),
-  // Polymorphic association fields
+  addressId: int('address_id').autoincrement().primaryKey(), // OR varchar('address_id', { length: 255 }).notNull().primaryKey() if you intended string PK
   entityType: mysqlEnum('entity_type', [
-    'client',
-    'vendor',
-    'supplier',
-    'designer',
-    'worker',
-    'project',
-    'office',
+    'Client',
+    'Vendor',
+    'Supplier',
+    'Designer',
+    'Worker',
+    'Project',
+    'Office',
   ]).notNull(),
-  entityId: varchar('entity_id', { length: 255 }).notNull(), // This will store the client_id, vendor_id, etc.
-
+  entityId: varchar('entity_id', { length: 255 }).notNull(),
   addressType: mysqlEnum('address_type', [
-    'office',
-    'factory',
-    'warehouse',
-    'shop',
-    'studio',
-    'billing',
-    'project',
-    'residential',
-    'other',
+    'Office',
+    'Factory',
+    'Warehouse',
+    'Shop',
+    'Studio',
+    'Billing',
+    'Project',
+    'Residential',
+    'Other',
   ]).notNull(),
   addressLine1: varchar('address_line_1', { length: 255 }).notNull(),
   addressLine2: varchar('address_line_2', { length: 255 }),
@@ -32,5 +37,6 @@ export const addresses = mysqlTable('addresses', {
   state: varchar('state', { length: 100 }).notNull(),
   pincode: varchar('pincode', { length: 10 }).notNull(),
   country: varchar('country', { length: 100 }).notNull(),
-  ...timestamps,
+  isActive: boolean('is_active').default(true), // Explicitly define if not in helper, or ensure helper is used.
+  ...timestamps, // Spreads createdAt, updatedAt, deletedAt
 });

@@ -5,10 +5,10 @@ import { vendorCategories } from './vendorCategory.schema';
 
 export const vendors = mysqlTable('vendors', {
   vendorId: int('vendor_id').autoincrement().primaryKey(),
-  userId: varchar('user_id', { length: 255 }).references(() => users.userId, {
+  userId: int('user_id').references(() => users.userId, {
     onDelete: 'set null',
   }),
-  category: varchar('category', { length: 100 })
+  category: int('category')
     .notNull()
     .references(() => vendorCategories.categoryId), // e.g., 'Electrical', 'Plumbing', 'Civil', 'Other'
   companyName: varchar('company_name', { length: 255 }).notNull(),

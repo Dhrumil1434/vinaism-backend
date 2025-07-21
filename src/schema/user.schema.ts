@@ -11,8 +11,6 @@ export const users = mysqlTable('users', {
   firstName: varchar('first_name', { length: 150 }).notNull(),
   lastName: varchar('last_name', { length: 150 }).notNull(),
   password: varchar('password', { length: 255 }),
-  userType: varchar('user_type_id', { length: 36 }).references(
-    () => userTypes.userTypeId
-  ),
+  userType: int('user_type_id').references(() => userTypes.userTypeId),
   ...timestamps,
 });

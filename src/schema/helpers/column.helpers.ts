@@ -9,5 +9,5 @@ export const timestamps = {
   updatedAt: timestamp('updated_at', { mode: 'string' })
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`), // Issue 2: Missing .onUpdate() for updated_at
-  deleted_at: timestamp(), // Issue 3: Missing column name, mode, and .nullable() for deleted_at
+  // Issue 3: Missing column name, mode, and .
 };

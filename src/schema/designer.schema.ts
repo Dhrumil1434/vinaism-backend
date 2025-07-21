@@ -1,10 +1,10 @@
-import { mysqlTable, varchar } from 'drizzle-orm/mysql-core';
+import { mysqlTable, varchar, int } from 'drizzle-orm/mysql-core';
 import { timestamps } from './helpers/column.helpers'; // Assuming this helper provides createdAt and updatedAt
 import { users } from './user.schema'; // Assuming your users schema is in user.schema.ts
 
 export const designers = mysqlTable('designers', {
   designerId: varchar('designer_id', { length: 255 }).notNull().primaryKey(), // Primary Key (string/UUID as per ER)
-  userId: varchar('user_id', { length: 255 }).references(() => users.userId, {
+  userId: int('user_id').references(() => users.userId, {
     onDelete: 'set null',
   }), // Foreign Key to users, nullable
   category: varchar('category', { length: 100 }), // e.g., 'Interior', 'Architectural', 'Landscape'. Nullable as per ER implicit nullable for category

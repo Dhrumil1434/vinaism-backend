@@ -4,9 +4,9 @@ import { vendorOrders } from './vendorOrder.schema';
 
 export const vendorOrderItems = mysqlTable('vendor_order_items', {
   orderItemId: int('order_item_id').autoincrement().primaryKey(),
-  vendorOrderId: int('vendor_order_id')
-    .references(() => vendorOrders.vendorOrderId, { onDelete: 'cascade' })
-    .notNull(),
+  vendorOrderId: int('vendor_order_id').references(
+    () => vendorOrders.vendorOrderId
+  ),
   materialProductName: varchar('material_product_name', {
     length: 255,
   }).notNull(),
