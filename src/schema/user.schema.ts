@@ -1,8 +1,17 @@
-import { mysqlTable, int, varchar, date } from 'drizzle-orm/mysql-core';
+import { int, mysqlTable, varchar } from 'drizzle-orm/mysql-core';
+import { userTypes } from './userTypes.schema';
+import { timestamps } from './helpers/column.helpers';
 
-export const flyer123 = mysqlTable('flyer123', {
-  flyer_id: int('flyer_id').primaryKey().autoincrement().notNull(),
-  imported_flyer_id: varchar('imported_flyer_id', { length: 255 }),
-  valid_from: date('valid_from', { mode: 'date' }),
-  valid_to: date('valid_to', { mode: 'date' }),
+export const users = mysqlTable('users', {
+  userId: int('user_id').autoincrement().notNull().primaryKey(),
+  userName: varchar('user_name', { length: 255 }).notNull(),
+  phoneNumber: varchar('phone_number', { length: 20 }).notNull().unique(),
+  email: varchar('email', { length: 255 }).unique(),
+  firstName: varchar('first_name', { length: 150 }).notNull(),
+  lastName: varchar('last_name', { length: 150 }).notNull(),
+  password: varchar('password', { length: 255 }),
+  userType: varchar('user_type_id', { length: 36 }).references(
+    () => userTypes.userTypeId
+  ),
+  ...timestamps,
 });
