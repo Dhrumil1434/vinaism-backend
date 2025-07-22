@@ -4,8 +4,13 @@ import { z } from 'zod';
 export const userTypeCreateSchema = z.object({
   typeName: z
     .string()
+    .trim()
     .min(1, 'Type name is required')
-    .max(100, 'Type name must be at most 100 characters'),
+    .max(100, 'Type name must be at most 100 characters')
+    .regex(
+      /^[A-Za-z][A-Za-z0-9]*$/,
+      'Type name must start with a letter and contain only letters and numbers'
+    ),
   description: z
     .string()
     .max(255, 'Description must be at most 255 characters')
@@ -36,7 +41,15 @@ export const userTypeIdParamSchema = z.object({
 // Zod schema for the full userType record (DB response)
 const userTypeRecordSchema = z.object({
   userTypeId: z.number().int().positive(),
-  typeName: z.string().min(1).max(100),
+  typeName: z
+    .string()
+    .min(1)
+    .regex(/^[a-zA-Z0-9]+$/, {
+      // <-- This is the key change!
+      message:
+        'Type name must contain only alphanumeric characters (letters and numbers).',
+    })
+    .max(100),
   description: z.string().max(255).nullable(),
   is_active: z.boolean(),
   createdAt: z.string(),

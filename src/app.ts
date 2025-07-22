@@ -1,11 +1,11 @@
-import express, { Application, Response } from 'express';
+import express, { Application } from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import { errorHandler } from './middlewares/errorHandler.middleware';
 import cookieParser from 'cookie-parser';
-
+import userTypeRouter from './routes/userType.routes';
 class App {
   public app: Application;
 
@@ -40,9 +40,7 @@ class App {
   }
 
   private setRoutes(): void {
-    this.app.get('/', (res: Response) => {
-      res.send('API is running!');
-    });
+    this.app.use('/api/userType', userTypeRouter);
     // Add more routes here or import from separate files
   }
 
