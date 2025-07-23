@@ -1,14 +1,14 @@
-import { asyncHandler } from '@utils-core';
+import { ApiResponse, asyncHandler } from '@utils-core';
 import { Request, Response } from 'express';
 import { UserTypeService } from './userType.service';
 import {
   paginatedUserTypeResponseSchema,
   userTypeRecordArraySchema,
   userTypeFilterSchema,
+  userTypeRecordSchema,
 } from './validators/userType.validator';
 import { StatusCodes } from 'http-status-codes';
 import { UserTypeMessage } from './constants/userTypes.constant';
-
 export class UserTypeController {
   static createUserType = asyncHandler(async (req: Request, res: Response) => {
     const createdUserType = await UserTypeService.create(req.body);
@@ -45,4 +45,20 @@ export class UserTypeController {
       res.json(validated);
     }
   );
+  // getting start with the update user type
+  static updateUserTypes = asyncHandler(async (req: Request, res: Response) => {
+    const { userTypeId } = req.params;
+    const data = req.body;
+    const updated = await UserTypeService.updateUserType(
+      Number(userTypeId),
+      data
+    );
+    const validate = userTypeRecordSchema.parse(updated);
+    const response = new ApiResponse(
+      StatusCodes.OK,
+      validate,
+      UserTypeMessage.UPDATE_USER_TYPE_SUCCESS
+    );
+    res.status(response.statusCode).json(response);
+  });
 }
