@@ -1,6 +1,6 @@
-import { db } from 'db/mysql.db';
+import { db } from '../../../db/mysql.db';
 import { eq } from 'drizzle-orm';
-import { userTypes } from 'schema';
+import { userTypes } from '../../../schema/userTypes.schema';
 
 export class UserTypeSchemaRepo {
   static async getAll() {
