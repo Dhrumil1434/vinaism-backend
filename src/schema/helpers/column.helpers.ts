@@ -8,6 +8,7 @@ export const timestamps = {
     .default(sql`CURRENT_TIMESTAMP`),
   updatedAt: timestamp('updated_at', { mode: 'string' })
     .notNull()
-    .default(sql`CURRENT_TIMESTAMP`), // Issue 2: Missing .onUpdate() for updated_at
+    .default(sql`CURRENT_TIMESTAMP`)
+    .onUpdateNow(), // Issue 2: Missing .onUpdate() for updated_at
   // Issue 3: Missing column name, mode, and .
 };
