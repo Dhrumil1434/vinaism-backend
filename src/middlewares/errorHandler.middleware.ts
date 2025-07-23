@@ -1,53 +1,39 @@
-import { Request, Response, NextFunction } from 'express';
-import chalk from 'chalk';
-import { ApiError } from '@utils-core';
+import { ZodError } from 'zod';
+import { Request, Response } from 'express';
+import { ApiError } from '../utils/apiError.util';
 
-const errorHandler = (
-  err: any,
-  req: Request,
-  res: Response,
-
-  _next: NextFunction
-) => {
-  const isApiError = err instanceof ApiError;
-  const statusCode = isApiError ? err.statusCode : 500;
-  const errorCode = isApiError ? err.errorCode : 'INTERNAL_SERVER_ERROR';
-  const message = isApiError ? err.message : 'Something went wrong';
-  const errors = isApiError ? err.errors : [];
-  const data = isApiError ? err.data : null;
-  const success = isApiError ? err.success : false;
-  const action = isApiError ? err.action : null;
-
-  // Log error with context
-  console.error(
-    chalk.red(
-      `[${new Date().toISOString()}] [${req.method} ${req.originalUrl}] ${errorCode}: ${message}`
-    )
-  );
-  if (errors.length > 0) {
-    console.error(
-      chalk.yellow('Details:'),
-      chalk.cyan(JSON.stringify(errors, null, 2))
-    );
-    if (data) {
-      console.error(
-        chalk.yellow('Data:'),
-        chalk.cyan(JSON.stringify(data, null, 2))
-      );
-    }
-  }
-  if (!isApiError && process.env['NODE_ENV'] !== 'production') {
-    console.error(chalk.gray(err.stack));
+export function errorHandler(err: any, req: Request, res: Response) {
+  // Handle Zod validation errors
+  if (err instanceof ZodError) {
+    return res.status(400).json({
+      success: false,
+      action: null,
+      errorCode: 'VALIDATION_ERROR',
+      message: 'Invalid input data',
+      errors: err.issues, // Zod's detailed error array
+      data: null,
+    });
   }
 
-  res.status(statusCode).json({
-    success,
-    action,
-    errorCode,
-    message,
-    errors,
-    data,
+  // Handle your custom ApiError
+  if (err instanceof ApiError) {
+    return res.status(err.statusCode || 500).json({
+      success: false,
+      action: err.action || null,
+      errorCode: err.errorCode || 'INTERNAL_SERVER_ERROR',
+      message: err.message || 'Something went wrong',
+      errors: err.errors || [],
+      data: err.data || null,
+    });
+  }
+
+  // Fallback: generic error
+  return res.status(500).json({
+    success: false,
+    action: null,
+    errorCode: 'INTERNAL_SERVER_ERROR',
+    message: 'Something went wrong',
+    errors: [],
+    data: null,
   });
-};
-
-export { errorHandler };
+}
