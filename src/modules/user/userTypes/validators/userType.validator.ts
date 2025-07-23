@@ -33,15 +33,14 @@ export const userTypeUpdateSchema = userTypeRecordSchema
   .pick({
     typeName: true,
     description: true,
+    is_active: true,
   })
-  .optional();
+  .partial()
+  .strict();
 
 // Zod schema for userTypeId param (for routes that require an ID)
 export const userTypeIdParamSchema = z.object({
-  userTypeId: z
-    .number()
-    .int('User type ID must be an integer')
-    .positive('User type ID must be positive'),
+  userTypeId: z.preprocess((val) => Number(val), z.number().int().positive()),
 });
 
 // 👇 Schema for an array of userType objects
