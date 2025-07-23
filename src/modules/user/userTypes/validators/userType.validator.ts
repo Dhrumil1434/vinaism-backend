@@ -58,3 +58,22 @@ const userTypeRecordSchema = z.object({
 
 // 👇 Schema for an array of userType objects
 export const userTypeRecordArraySchema = z.array(userTypeRecordSchema);
+
+// Zod schema for pagination meta
+export const paginationMetaSchema = z.object({
+  total: z.number().int().nonnegative(),
+  totalPages: z.number().int().positive(),
+  currentPage: z.number().int().positive(),
+  pageSize: z.number().int().positive(),
+});
+
+// Zod schema for paginated userType response
+export const paginatedUserTypeResponseSchema = z.object({
+  statusCode: z.number().int(),
+  data: z.object({
+    items: userTypeRecordArraySchema,
+    meta: paginationMetaSchema,
+  }),
+  message: z.string(),
+  success: z.boolean(),
+});

@@ -9,6 +9,7 @@ import {
 import { ApiError } from '@utils-core';
 import { eq } from 'drizzle-orm';
 import { StatusCodes } from 'http-status-codes';
+import { getPagination } from '../../../utils/pagination.util';
 
 export class UserTypeService {
   static async create(data: IUserTypeCreate) {
@@ -42,5 +43,26 @@ export class UserTypeService {
       .from(userTypes)
       .where(eq(userTypes.userTypeId, insertedId));
     return insertedData;
+  }
+
+  static async getPaginated(page = 1, limit = 10) {
+    // Get total count
+    const allRows = await db.select().from(userTypes);
+    const total = allRows.length;
+    const { skip, take, totalPages, currentPage } = getPagination(
+      { page, limit },
+      total
+    );
+    // Fetch paginated items
+    const items = await db.select().from(userTypes).offset(skip).limit(take);
+    return {
+      items,
+      meta: {
+        total,
+        totalPages,
+        currentPage,
+        pageSize: take,
+      },
+    };
   }
 }
