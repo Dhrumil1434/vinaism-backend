@@ -1,8 +1,13 @@
 import { ZodError } from 'zod';
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { ApiError } from '../utils/apiError.util';
 
-export function errorHandler(err: any, req: Request, res: Response) {
+export function errorHandler(
+  err: any,
+  _req: Request,
+  res: Response,
+  _next: NextFunction
+) {
   // Handle Zod validation errors
   if (err instanceof ZodError) {
     return res.status(400).json({
