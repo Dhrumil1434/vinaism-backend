@@ -20,10 +20,24 @@ router.post(
 
 router.get('/', UserTypeController.getPaginatedUserTypes);
 
+router.get('/all', UserTypeController.getAllUserTypes);
+
 router.put(
   '/:userTypeId',
   validateParams(userTypeIdParamSchema),
   validateBody(userTypeUpdateSchema),
   UserTypeController.updateUserTypes
+);
+
+router.patch(
+  '/:userTypeId/active',
+  validateParams(userTypeIdParamSchema),
+  UserTypeController.softDeleteUserType
+);
+
+router.delete(
+  '/:userTypeId',
+  validateParams(userTypeIdParamSchema),
+  UserTypeController.hardDeleteUserType
 );
 export default router;

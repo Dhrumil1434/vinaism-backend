@@ -4,46 +4,64 @@ import { userTypes } from '../../../schema/userTypes.schema';
 import {
   UserTypeAction,
   UserTypeErrorCode,
-  UserTypeMessage,
 } from './constants/userTypes.constant';
 import { ApiError } from '@utils-core';
-import { and, eq, like } from 'drizzle-orm';
+import { and, eq, like, not } from 'drizzle-orm';
 import { StatusCodes } from 'http-status-codes';
 import { getPagination } from '../../../utils/pagination.util';
 import { UserTypeFilters } from './validators/userType.validator';
+import { UserTypeSchemaRepo } from './userTypeSchema.repository';
 
 export class UserTypeService {
   static async create(data: IUserTypeCreate) {
-    // Check for duplicate typeName
-    const existing = await db
+    // Check for duplicate active typeName
+    const existingActive = await db
       .select()
       .from(userTypes)
-      .where(eq(userTypes.typeName, data.typeName));
-    if (existing.length > 0) {
+      .where(
+        and(
+          eq(userTypes.typeName, data.typeName.toLowerCase()),
+          eq(userTypes.is_active, true)
+        )
+      );
+    if (existingActive.length > 0) {
       throw new ApiError(
         UserTypeAction.CREATE_USER_TYPE,
         StatusCodes.CONFLICT,
         UserTypeErrorCode.CONFLICT,
-        UserTypeMessage.CONFLICT,
-        undefined,
-        [
-          {
-            expectedField: 'userType',
-            description: `As userType :  ${data.typeName} is already inserted try to insert different `,
-          },
-        ]
+        'Active user type with this name already exists.'
       );
     }
+    // If an inactive userType exists, reactivate and update it
+    const existingInactive = await db
+      .select()
+      .from(userTypes)
+      .where(
+        and(
+          eq(userTypes.typeName, data.typeName.toLowerCase()),
+          eq(userTypes.is_active, false)
+        )
+      );
+    if (existingInactive.length > 0 && existingInactive[0]) {
+      await db
+        .update(userTypes)
+        .set({ is_active: true, description: data.description ?? null })
+        .where(eq(userTypes.userTypeId, existingInactive[0].userTypeId));
+      return await db
+        .select()
+        .from(userTypes)
+        .where(eq(userTypes.userTypeId, existingInactive[0].userTypeId));
+    }
+    // Insert new user type
     const result = await db.insert(userTypes).values({
       typeName: data.typeName.toLowerCase(),
       description: data.description ?? null,
     });
     const insertedId = result[0].insertId;
-    const insertedData = await db
+    return await db
       .select()
       .from(userTypes)
       .where(eq(userTypes.userTypeId, insertedId));
-    return insertedData;
   }
 
   static async getPaginated(
@@ -51,6 +69,10 @@ export class UserTypeService {
     limit = 10,
     filters: UserTypeFilters = {}
   ) {
+    // By default, only fetch active records unless is_active is explicitly set
+    if (typeof filters.is_active === 'undefined') {
+      filters.is_active = true;
+    }
     // Build dynamic where conditions
     const conditions = [];
     if (filters.userTypeId !== undefined) {
@@ -95,13 +117,35 @@ export class UserTypeService {
     };
   }
 
+  static async getAllUserTypes() {
+    return await UserTypeSchemaRepo.getAll();
+  }
+
   static async updateUserType(userTypeId: number, data: IUserTypeUpdateSchema) {
+    if (data.typeName) {
+      const duplicate = await db
+        .select()
+        .from(userTypes)
+        .where(
+          and(
+            eq(userTypes.typeName, data.typeName.toLowerCase()),
+            eq(userTypes.is_active, true),
+            not(eq(userTypes.userTypeId, userTypeId))
+          )
+        );
+      if (duplicate.length > 0) {
+        throw new ApiError(
+          UserTypeAction.UPDATE_USER_TYPE,
+          StatusCodes.CONFLICT,
+          UserTypeErrorCode.CONFLICT,
+          'Another active user type with this name already exists.'
+        );
+      }
+    }
     const result = await db
       .update(userTypes)
       .set({ ...data })
       .where(eq(userTypes.userTypeId, Number(userTypeId)));
-
-    // Check if any row was affected (MySQL2 returns an object with affectedRows)
     if (!result[0] || result[0].affectedRows === 0) {
       throw new ApiError(
         UserTypeAction.UPDATE_USER_TYPE,
@@ -116,5 +160,38 @@ export class UserTypeService {
       .from(userTypes)
       .where(eq(userTypes.userTypeId, Number(userTypeId)));
     return updated;
+  }
+
+  static async softDeleteUserType(userTypeId: number) {
+    const existing = await UserTypeSchemaRepo.getById(userTypeId);
+    if (!existing[0]) {
+      throw new ApiError(
+        UserTypeAction.UPDATE_USER_TYPE,
+        StatusCodes.NOT_FOUND,
+        UserTypeErrorCode.NOT_FOUND,
+        'User type not found.'
+      );
+    }
+    // Toggle is_active
+    const newActive = !existing[0].is_active;
+    await db
+      .update(userTypes)
+      .set({ is_active: newActive })
+      .where(eq(userTypes.userTypeId, userTypeId));
+    return await UserTypeSchemaRepo.getById(userTypeId);
+  }
+
+  static async hardDeleteUserType(userTypeId: number) {
+    const existing = await UserTypeSchemaRepo.getById(userTypeId);
+    if (!existing[0]) {
+      throw new ApiError(
+        UserTypeAction.UPDATE_USER_TYPE,
+        StatusCodes.NOT_FOUND,
+        UserTypeErrorCode.NOT_FOUND,
+        'User type not found.'
+      );
+    }
+    await db.delete(userTypes).where(eq(userTypes.userTypeId, userTypeId));
+    return { userTypeId, deleted: true };
   }
 }
