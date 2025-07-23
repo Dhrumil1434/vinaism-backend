@@ -7,4 +7,5 @@ export enum UserTypeAction {
 export enum UserTypeMessage {
   CONFLICT = 'User type is already exists with the given name !',
   CREATE_USER_TYPE = 'User Type Created Succesfully ! ',
+  GET_USER_TYPE = 'User Types fetched successfully !',
 }

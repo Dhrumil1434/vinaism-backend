@@ -77,3 +77,18 @@ export const paginatedUserTypeResponseSchema = z.object({
   message: z.string(),
   success: z.boolean(),
 });
+
+export const userTypeFilterSchema = z
+  .object({
+    userTypeId: z.string().optional(),
+    typeName: z.string().optional(),
+    description: z.string().optional(),
+    is_active: z
+      .preprocess((val) => {
+        if (typeof val === 'string') return val === 'true';
+        return val;
+      }, z.boolean())
+      .optional(),
+  })
+  .strict();
+export type UserTypeFilters = z.infer<typeof userTypeFilterSchema>;

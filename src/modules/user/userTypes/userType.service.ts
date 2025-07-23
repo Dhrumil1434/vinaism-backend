@@ -7,9 +7,10 @@ import {
   UserTypeMessage,
 } from './constants/userTypes.constant';
 import { ApiError } from '@utils-core';
-import { eq } from 'drizzle-orm';
+import { and, eq, like } from 'drizzle-orm';
 import { StatusCodes } from 'http-status-codes';
 import { getPagination } from '../../../utils/pagination.util';
+import { UserTypeFilters } from './validators/userType.validator';
 
 export class UserTypeService {
   static async create(data: IUserTypeCreate) {
@@ -45,16 +46,44 @@ export class UserTypeService {
     return insertedData;
   }
 
-  static async getPaginated(page = 1, limit = 10) {
-    // Get total count
-    const allRows = await db.select().from(userTypes);
-    const total = allRows.length;
+  static async getPaginated(
+    page = 1,
+    limit = 10,
+    filters: UserTypeFilters = {}
+  ) {
+    // Build dynamic where conditions
+    const conditions = [];
+    if (filters.userTypeId !== undefined) {
+      conditions.push(eq(userTypes.userTypeId, Number(filters.userTypeId)));
+    }
+    if (filters.typeName) {
+      conditions.push(like(userTypes.typeName, `%${filters.typeName}%`));
+    }
+    if (filters.description) {
+      conditions.push(like(userTypes.description, `%${filters.description}%`));
+    }
+    if (typeof filters.is_active === 'boolean') {
+      conditions.push(eq(userTypes.is_active, filters.is_active));
+    }
+    // Compose the where clause
+    let query: Promise<any[]>;
+    if (conditions.length > 0) {
+      query = db
+        .select()
+        .from(userTypes)
+        .where(and(...conditions));
+    } else {
+      query = db.select().from(userTypes);
+    }
+    // Get all matching rows for total count
+    const rows = await query;
+    const total = rows.length;
     const { skip, take, totalPages, currentPage } = getPagination(
       { page, limit },
       total
     );
     // Fetch paginated items
-    const items = await db.select().from(userTypes).offset(skip).limit(take);
+    const items = rows.slice(skip, skip + take);
     return {
       items,
       meta: {
