@@ -1,4 +1,4 @@
-import { IUserTypeCreate } from './types/userType.type';
+import { IUserTypeCreate, IUserTypeUpdateSchema } from './types/userType.type';
 import { db } from '../../../db/mysql.db';
 import { userTypes } from '../../../schema/userTypes.schema';
 import {
@@ -93,5 +93,28 @@ export class UserTypeService {
         pageSize: take,
       },
     };
+  }
+
+  static async updateUserType(userTypeId: number, data: IUserTypeUpdateSchema) {
+    const result = await db
+      .update(userTypes)
+      .set({ ...data })
+      .where(eq(userTypes.userTypeId, Number(userTypeId)));
+
+    // Check if any row was affected (MySQL2 returns an object with affectedRows)
+    if (!result[0] || result[0].affectedRows === 0) {
+      throw new ApiError(
+        UserTypeAction.UPDATE_USER_TYPE,
+        StatusCodes.NOT_FOUND,
+        UserTypeErrorCode.NOT_FOUND,
+        'User type not found or no changes made.'
+      );
+    }
+    // Fetch and return the updated record
+    const [updated] = await db
+      .select()
+      .from(userTypes)
+      .where(eq(userTypes.userTypeId, Number(userTypeId)));
+    return updated;
   }
 }
