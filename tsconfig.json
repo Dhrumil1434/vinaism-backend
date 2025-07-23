@@ -49,6 +49,6 @@
     "skipLibCheck": true /* Skips type checking of declaration files. */,
     "typeRoots": ["./node_modules/@types", "./env.d.ts"]
   },
-  "include": ["drizzle.config.ts", "src/**/*"],
+  "include": ["**/*.config.ts", "src/**/*"],
   "exclude": ["node_modules"]
 }
