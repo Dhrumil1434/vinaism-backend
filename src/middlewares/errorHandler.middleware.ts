@@ -4,12 +4,20 @@ import { ApiError } from '../utils/apiError.util';
 
 export function errorHandler(
   err: any,
-  _req: Request,
+  req: Request,
   res: Response,
   _next: NextFunction
 ) {
   // Handle Zod validation errors
   if (err instanceof ZodError) {
+    console.error(
+      `[${new Date().toISOString()}] [${req.method} ${req.originalUrl}] ZodError:`,
+      err.message
+    );
+    console.error('Zod issues:', JSON.stringify(err.issues, null, 2));
+    if (err.stack) {
+      console.error('Stack:', err.stack);
+    }
     return res.status(400).json({
       success: false,
       action: null,
@@ -22,6 +30,17 @@ export function errorHandler(
 
   // Handle your custom ApiError
   if (err instanceof ApiError) {
+    console.error(
+      `[${new Date().toISOString()}] [${req.method} ${req.originalUrl}] ApiError:`,
+      err.errorCode,
+      err.message
+    );
+    if (err.errors && err.errors.length > 0) {
+      console.error('ApiError details:', JSON.stringify(err.errors, null, 2));
+    }
+    if (err.stack) {
+      console.error('Stack:', err.stack);
+    }
     return res.status(err.statusCode || 500).json({
       success: false,
       action: err.action || null,
@@ -33,6 +52,13 @@ export function errorHandler(
   }
 
   // Fallback: generic error
+  console.error(
+    `[${new Date().toISOString()}] [${req.method} ${req.originalUrl}] Unhandled Error:`,
+    err.message || err
+  );
+  if (err.stack) {
+    console.error('Stack:', err.stack);
+  }
   return res.status(500).json({
     success: false,
     action: null,
