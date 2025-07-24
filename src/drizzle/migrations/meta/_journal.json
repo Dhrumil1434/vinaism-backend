@@ -22,6 +22,13 @@
       "when": 1753267485399,
       "tag": "0002_lean_molten_man",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1753352260435,
+      "tag": "0003_square_the_hood",
+      "breakpoints": true
     }
   ]
 }
