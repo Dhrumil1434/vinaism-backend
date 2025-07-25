@@ -6,6 +6,7 @@ import rateLimit from 'express-rate-limit';
 import { errorHandler } from './middlewares/errorHandler.middleware';
 import cookieParser from 'cookie-parser';
 import userTypeRouter from './routes/userType.routes';
+import userRegistrationRouter from './routes/userRegistration.routes';
 class App {
   public app: Application;
 
@@ -28,6 +29,7 @@ class App {
     );
     this.app.use(express.json());
     this.app.use(express.static('public'));
+    this.app.use('/uploads', express.static('public/uploads'));
     this.app.use(express.urlencoded({ extended: true }));
     this.app.use(
       cors({
@@ -41,6 +43,7 @@ class App {
 
   private setRoutes(): void {
     this.app.use('/api/userType', userTypeRouter);
+    this.app.use('/api/userRegister', userRegistrationRouter);
     // Add more routes here or import from separate files
   }
 
