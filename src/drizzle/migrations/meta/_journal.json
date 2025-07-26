@@ -1,34 +1,5 @@
 {
   "version": "7",
   "dialect": "mysql",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "5",
-      "when": 1753112761981,
-      "tag": "0000_legal_clea",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "5",
-      "when": 1753266810780,
-      "tag": "0001_brave_tattoo",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "5",
-      "when": 1753267485399,
-      "tag": "0002_lean_molten_man",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "5",
-      "when": 1753352260435,
-      "tag": "0003_square_the_hood",
-      "breakpoints": true
-    }
-  ]
+  "entries": []
 }
