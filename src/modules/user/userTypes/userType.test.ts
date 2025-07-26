@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { UserTypeService } from './userType.service';
 import { UserTypeSchemaRepo } from './userTypeSchema.repository';
-import { ApiError } from '../../../utils/apiError.util';
 import { db } from '../../../db/mysql.db';
+import { ApiError } from '@utils-core';
 
 vi.mock('./userTypeSchema.repository');
 vi.mock('../../../db/mysql.db');
@@ -15,38 +15,28 @@ const mockUserTypeActive = {
   createdAt: '2024-01-01T00:00:00.000Z',
   updatedAt: '2024-01-01T00:00:00.000Z',
 };
+
 const mockUserTypeInactive = {
-  ...mockUserTypeActive,
-  is_active: false,
   userTypeId: 2,
+  typeName: 'admin',
+  description: 'desc',
+  is_active: false,
+  createdAt: '2024-01-01T00:00:00.000Z',
+  updatedAt: '2024-01-01T00:00:00.000Z',
 };
 
-// Helper to mock db.select().from().where() chain
-function mockDbSelectReturn(data: any[]) {
-  vi.spyOn(db, 'select').mockReturnValue({
-    from: () => ({
-      where: () => Promise.resolve(data),
-    }),
-  } as any);
-}
-
-// Helper to mock db.insert().values()
 function mockDbInsertReturn(insertId: number) {
   vi.spyOn(db, 'insert').mockReturnValue({
     values: () => Promise.resolve([{ insertId }]),
   } as any);
 }
 
-// Helper to mock db.update().set().where()
 function mockDbUpdateReturn(affectedRows: number) {
   vi.spyOn(db, 'update').mockReturnValue({
-    set: () => ({
-      where: () => Promise.resolve([{ affectedRows }]),
-    }),
+    set: () => ({ where: () => Promise.resolve([{ affectedRows }]) }),
   } as any);
 }
 
-// Helper to mock db.delete().where()
 function mockDbDeleteReturn(affectedRows: number) {
   vi.spyOn(db, 'delete').mockReturnValue({
     where: () => Promise.resolve([{ affectedRows }]),
@@ -55,13 +45,20 @@ function mockDbDeleteReturn(affectedRows: number) {
 
 describe('UserTypeService', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     vi.restoreAllMocks();
   });
 
   it('should create a new userType if no duplicate exists', async () => {
-    mockDbSelectReturn([]); // No active or inactive
+    // Mock to return no existing userTypes
+    vi.spyOn(db, 'select').mockReturnValue({
+      from: () => ({ where: () => Promise.resolve([]) }),
+    } as any);
     mockDbInsertReturn(3);
-    mockDbSelectReturn([{ ...mockUserTypeActive, userTypeId: 3 }]);
+    vi.spyOn(UserTypeSchemaRepo, 'getById').mockResolvedValue([
+      { ...mockUserTypeActive, userTypeId: 3 },
+    ]);
+
     const result = await UserTypeService.create({
       typeName: 'admin',
       description: 'desc',
@@ -72,7 +69,11 @@ describe('UserTypeService', () => {
   });
 
   it('should not allow duplicate active userType', async () => {
-    mockDbSelectReturn([mockUserTypeActive]);
+    // Mock to return existing active userType
+    vi.spyOn(db, 'select').mockReturnValue({
+      from: () => ({ where: () => Promise.resolve([mockUserTypeActive]) }),
+    } as any);
+
     await expect(
       UserTypeService.create({ typeName: 'admin', description: 'desc' })
     ).rejects.toThrow(ApiError);
@@ -96,6 +97,10 @@ describe('UserTypeService', () => {
     vi.spyOn(db, 'update').mockReturnValue({
       set: () => ({ where: () => Promise.resolve([{ affectedRows: 1 }]) }),
     } as any);
+    vi.spyOn(UserTypeSchemaRepo, 'getById').mockResolvedValue([
+      { ...mockUserTypeInactive, is_active: true },
+    ]);
+
     const result = await UserTypeService.create({
       typeName: 'admin',
       description: 'desc',
@@ -104,21 +109,27 @@ describe('UserTypeService', () => {
   });
 
   it('should update userType and prevent duplicate name', async () => {
-    // No duplicate
+    // Test successful update - no duplicate
     vi.spyOn(db, 'select').mockReturnValue({
       from: () => ({ where: () => Promise.resolve([]) }),
     } as any);
     mockDbUpdateReturn(1);
-    mockDbSelectReturn([{ ...mockUserTypeActive, typeName: 'newname' }]);
+    vi.spyOn(UserTypeSchemaRepo, 'getById').mockResolvedValue([
+      { ...mockUserTypeActive, typeName: 'newname' },
+    ]);
+
     const result = await UserTypeService.updateUserType(1, {
       typeName: 'newname',
     });
     expect(result!.typeName).toBe('newname');
+  });
 
-    // Duplicate
+  it('should prevent duplicate name during update', async () => {
+    // Test duplicate name during update
     vi.spyOn(db, 'select').mockReturnValue({
       from: () => ({ where: () => Promise.resolve([mockUserTypeActive]) }),
     } as any);
+
     await expect(
       UserTypeService.updateUserType(2, { typeName: 'admin' })
     ).rejects.toThrow(ApiError);
@@ -126,18 +137,18 @@ describe('UserTypeService', () => {
 
   it('should soft delete (toggle is_active)', async () => {
     // Mock getById to return active, then after update return inactive
-    let toggle = true;
-    vi.spyOn(UserTypeSchemaRepo, 'getById').mockImplementation(async () => [
-      { ...mockUserTypeActive, is_active: toggle },
+    vi.spyOn(UserTypeSchemaRepo, 'getById').mockResolvedValue([
+      mockUserTypeActive,
     ]);
     vi.spyOn(db, 'update').mockReturnValue({
       set: () => ({
-        where: () => {
-          toggle = !toggle;
-          return Promise.resolve([{ affectedRows: 1 }]);
-        },
+        where: () => Promise.resolve([{ affectedRows: 1 }]),
       }),
     } as any);
+    vi.spyOn(UserTypeSchemaRepo, 'getById')
+      .mockResolvedValueOnce([mockUserTypeActive])
+      .mockResolvedValueOnce([{ ...mockUserTypeActive, is_active: false }]);
+
     const result = await UserTypeService.softDeleteUserType(1);
     expect(result[0]!.is_active).toBe(false);
   });

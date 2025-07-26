@@ -1,4 +1,4 @@
-import { db } from 'db/mysql.db';
+import { db } from '../../../db/mysql.db';
 import { users } from '@schema-models';
 import { IUserRegistrationInsert } from './registration.types';
 import { UserRegistrationSchemaRepo } from './registrationSchema.repository';

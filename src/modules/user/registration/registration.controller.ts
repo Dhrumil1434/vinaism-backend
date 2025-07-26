@@ -8,10 +8,7 @@ import {
 
 import path from 'path';
 import { configDotenv } from 'dotenv';
-import {
-  generateFileName,
-  saveBufferedFile,
-} from 'utils/saveBufferedFile.util';
+import { generateFileName, saveBufferedFile } from '@utils-core';
 import {
   validateUniqueEmail,
   validateUniquePhoneNumber,

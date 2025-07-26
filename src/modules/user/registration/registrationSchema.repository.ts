@@ -1,6 +1,6 @@
 import { users } from '@schema-models';
 import { eq } from 'drizzle-orm';
-import { db } from 'db/mysql.db';
+import { db } from '../../../db/mysql.db';
 import { UserTypeSchemaRepo } from '../userTypes/userTypeSchema.repository';
 
 export class UserRegistrationSchemaRepo {
