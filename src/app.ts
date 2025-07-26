@@ -7,6 +7,9 @@ import { errorHandler } from './middlewares/errorHandler.middleware';
 import cookieParser from 'cookie-parser';
 import userTypeRouter from './routes/userType.routes';
 import userRegistrationRouter from './routes/userRegistration.routes';
+import otpRouter from './routes/otp.routes';
+import adminRouter from './routes/admin.routes';
+
 class App {
   public app: Application;
 
@@ -44,6 +47,8 @@ class App {
   private setRoutes(): void {
     this.app.use('/api/userType', userTypeRouter);
     this.app.use('/api/userRegister', userRegistrationRouter);
+    this.app.use('/api/otp', otpRouter);
+    this.app.use('/api/admin', adminRouter);
     // Add more routes here or import from separate files
   }
 
