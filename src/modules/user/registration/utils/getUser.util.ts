@@ -4,6 +4,14 @@ import { and, eq, like } from 'drizzle-orm';
 import { getPagination } from '../../../../utils/pagination.util';
 import { UserTypeSchemaRepo } from '../../userTypes/userTypeSchema.repository';
 import { UserRegistrationFilters } from '../registration.types';
+import { UserRegistrationSchemaRepo } from '../registrationSchema.repository';
+import { ApiError } from '@utils-core';
+import {
+  UserRegistrationAction,
+  UserRegistrationErrorCode,
+  UserRegistrationMessage,
+} from '../registration.constants';
+import { StatusCodes } from 'http-status-codes';
 
 // Interface for transformed user data
 interface TransformedUser {
@@ -175,7 +183,7 @@ export const getPaginatedUsers = async (
  * Get all users (active and inactive)
  */
 export const getAllUsers = async (): Promise<TransformedUser[]> => {
-  const allUsers = await db.select().from(users);
+  const allUsers = await UserRegistrationSchemaRepo.getAllRegisteredUsers();
   return transformUserRows(allUsers);
 };
 
@@ -218,7 +226,12 @@ export const getUsersByStatus = async (
       conditions = [eq(users.is_active, true)];
       break;
     default:
-      throw new Error(`Invalid status: ${status}`);
+      throw new ApiError(
+        UserRegistrationAction.GET_USER,
+        StatusCodes.NOT_FOUND,
+        UserRegistrationErrorCode.INVALID_STATUS,
+        UserRegistrationMessage.GET_USERS_FAILED
+      );
   }
 
   // Get all matching rows for total count
@@ -259,11 +272,7 @@ export const getUsersByStatus = async (
 export const getUserById = async (
   userId: number
 ): Promise<TransformedUser | null> => {
-  const user = await db
-    .select()
-    .from(users)
-    .where(eq(users.userId, userId))
-    .then((rows) => rows[0] || null);
+  const user = await UserRegistrationSchemaRepo.getUserById(userId);
 
   if (!user) return null;
 

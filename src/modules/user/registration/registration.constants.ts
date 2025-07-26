@@ -12,12 +12,14 @@ export enum UserRegistrationZodMessage {
 }
 export enum UserRegistrationAction {
   REGISTER_USER = 'Registration of user',
+  GET_USER = 'GETTING_USER_DATA',
 }
 export enum UserRegistrationErrorCode {
   INVALID_USER_TYPE = 'INVALID_USER_TYPE',
   EMAIL_ALREADY_EXISTS = 'EMAIL_ALREADY_EXISTS',
   FIRSTNAME_ALREADY_EXISTS = 'FIRSTNAME_ALREADY_EXISTS',
   PHONE_ALREADY_EXISTS = 'PHONE_ALREADY_EXISTS',
+  INVALID_STATUS = 'INVALID_ENTERED_STATUS',
 }
 export enum UserRegistrationMessage {
   INVALID_USER_TYPE = 'User type is not exists',
@@ -25,4 +27,5 @@ export enum UserRegistrationMessage {
   FIRSTNAME_ALREADY_EXISTS = 'First name is already taken',
   PHONE_ALREADY_EXISTS = 'Phone number is already registered',
   GET_USERS_SUCCESS = 'Users retrieved successfully',
+  GET_USERS_FAILED = 'Users are not found !',
 }
