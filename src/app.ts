@@ -9,7 +9,7 @@ import userTypeRouter from './routes/userType.routes';
 import userRegistrationRouter from './routes/userRegistration.routes';
 import otpRouter from './routes/otp.routes';
 import adminRouter from './routes/admin.routes';
-
+import loginRouter from './routes/login.routes';
 class App {
   public app: Application;
 
@@ -49,6 +49,7 @@ class App {
     this.app.use('/api/userRegister', userRegistrationRouter);
     this.app.use('/api/otp', otpRouter);
     this.app.use('/api/admin', adminRouter);
+    this.app.use('/api/userLogin', loginRouter);
     // Add more routes here or import from separate files
   }
 
