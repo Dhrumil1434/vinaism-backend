@@ -22,3 +22,5 @@ export * from './vendorOrder.schema';
 export * from './vendorOrderItems.schema';
 export * from './priceForm.schema';
 export * from './timeLog.schema';
+export * from './loginSession.schema';
+export * from './loginAttempts.schema';
