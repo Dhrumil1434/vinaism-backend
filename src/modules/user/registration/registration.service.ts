@@ -7,6 +7,7 @@ import {
 import { UserRegistrationSchemaRepo } from './registrationSchema.repository';
 import { UserTypeSchemaRepo } from '../userTypes/userTypeSchema.repository';
 import { OTPService } from './otp.service';
+import { hashPassword } from '../login/utils/auth.util';
 import {
   getPaginatedUsers,
   getAllUsers,
@@ -18,9 +19,13 @@ import {
 
 export class UserRegistrationService {
   static async registerUser(userData: IUserRegistrationInsert) {
+    // Hash the password before storing
+    const hashedPassword = await hashPassword(userData.password);
+
     // Ensure user is registered as inactive by default
     const userDataWithDefaults = {
       ...userData,
+      password: hashedPassword, // Use hashed password instead of plain text
       is_active: false,
       email_verified: false,
       phone_verified: false,
@@ -46,6 +51,7 @@ export class UserRegistrationService {
     const userType = await UserTypeSchemaRepo.getById(insertedRecord.userType!);
 
     // Build the response object to match UserRegistrationResponseSchema
+    // Note: We don't return the password in the response for security
     return {
       userId: insertedRecord.userId,
       userName: insertedRecord.userName,
@@ -54,7 +60,6 @@ export class UserRegistrationService {
       email: insertedRecord.email,
       firstName: insertedRecord.firstName,
       lastName: insertedRecord.lastName,
-      password: insertedRecord.password,
       userType: userType ? userType[0] : null,
       is_active: insertedRecord.is_active,
       email_verified: insertedRecord.email_verified,

@@ -46,16 +46,22 @@ export const UserRegistrationInsertSchemaDto = z.object({
   admin_approved: admin_approved,
 });
 
-export const UserRegistrationResponseSchema =
-  UserRegistrationInsertSchemaDto.extend({
-    userId: z.number().positive(),
-    userType: userTypeRecordSchema,
-    email_verified: z.boolean(),
-    phone_verified: z.boolean(),
-    admin_approved: z.boolean(),
-    createdAt: z.date().or(z.string()),
-    updatedAt: z.date().or(z.string()),
-  });
+export const UserRegistrationResponseSchema = z.object({
+  userId: z.number().positive(),
+  userName: z.string(),
+  profilePicture: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  phoneNumber: z.string(),
+  email: z.string(),
+  userType: userTypeRecordSchema,
+  is_active: z.boolean(),
+  email_verified: z.boolean(),
+  phone_verified: z.boolean(),
+  admin_approved: z.boolean(),
+  createdAt: z.date().or(z.string()),
+  updatedAt: z.date().or(z.string()),
+});
 
 // New validators for GET APIs
 

@@ -100,6 +100,14 @@ export const compareRefreshToken = async (
 };
 
 /**
+ * Hash password using bcrypt
+ */
+export const hashPassword = async (password: string): Promise<string> => {
+  const saltRounds = 12; // Recommended salt rounds for bcrypt
+  return await bcrypt.hash(password, saltRounds);
+};
+
+/**
  * Verify password - handles both plain text and hashed passwords
  */
 export const verifyPassword = async (
