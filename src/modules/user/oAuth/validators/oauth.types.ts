@@ -26,3 +26,27 @@ export type PaginationMeta = z.infer<typeof paginationMetaSchema>;
 export type PaginatedOAuthResponse = z.infer<
   typeof paginatedOAuthResponseSchema
 >;
+
+// Add OAuthProvider type and related interfaces for passport config
+export const OAuthProviderSchema = z.enum(['google', 'apple', 'facebook']);
+export type OAuthProvider = z.infer<typeof OAuthProviderSchema>;
+
+export interface OAuthProfile {
+  id: string;
+  email: string;
+  name?: {
+    firstName?: string;
+    lastName?: string;
+    givenName?: string;
+    familyName?: string;
+  };
+  photos?: Array<{ value: string }>;
+  provider: OAuthProvider;
+}
+
+export interface OAuthUserResult {
+  user: any; // Replace with actual user type
+  oauthMetadata: any; // Replace with actual oauthMetadata type
+  isNewUser: boolean;
+  isLinked: boolean;
+}

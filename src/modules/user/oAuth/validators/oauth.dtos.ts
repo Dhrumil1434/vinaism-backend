@@ -6,9 +6,7 @@ export const oauthUserId = z
   .number(OAuthZodMessage.USER_ID_REQUIRED)
   .int()
   .positive();
-export const oauthProvider = z
-  .string()
-  .nonempty(OAuthZodMessage.PROVIDER_REQUIRED);
+export const oauthProvider = z.enum(['google', 'apple', 'facebook']);
 export const oauthProviderUserId = z
   .string()
   .nonempty(OAuthZodMessage.PROVIDER_USER_ID_REQUIRED);
