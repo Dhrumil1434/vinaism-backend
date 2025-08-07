@@ -10,6 +10,13 @@ export const OAUTH_SCOPES = {
   FACEBOOK: 'email public_profile',
 } as const;
 
+export const OAuthZodMessage = {
+  PROVIDER_REQUIRED: 'Provider is required',
+  PROVIDER_USER_ID_REQUIRED: 'Provider user ID is required',
+  EMAIL_INVALID: 'Invalid email format',
+  USER_ID_REQUIRED: 'User ID is required',
+} as const;
+
 export const OAUTH_ERROR_MESSAGES = {
   INVALID_PROVIDER: 'Invalid OAuth provider',
   AUTHENTICATION_FAILED: 'OAuth authentication failed',
