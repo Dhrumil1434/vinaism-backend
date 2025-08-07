@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "f66a0d4a-62fe-493e-9b48-3cf47695bcbf",
-  "prevId": "6e68b85e-93f1-4212-8e9d-14d935b984fe",
+  "id": "94239a38-3dbe-45cf-8b9b-b9c8066360e5",
+  "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "user_types": {
       "name": "user_types",
@@ -2546,7 +2546,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "CURRENT_TIMESTAMP"
+          "default": "(now())"
         },
         "updated_at": {
           "name": "updated_at",
@@ -2555,11 +2555,25 @@
           "notNull": true,
           "autoincrement": false,
           "onUpdate": true,
-          "default": "CURRENT_TIMESTAMP"
+          "default": "(now())"
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "login_sessions_user_id_users_user_id_fk": {
+          "name": "login_sessions_user_id_users_user_id_fk",
+          "tableFrom": "login_sessions",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {
         "login_sessions_session_id": {
           "name": "login_sessions_session_id",
@@ -2616,7 +2630,8 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false,
-          "autoincrement": false
+          "autoincrement": false,
+          "default": "(now())"
         },
         "ip_address": {
           "name": "ip_address",
@@ -2632,21 +2647,13 @@
           "notNull": false,
           "autoincrement": false
         },
-        "is_active": {
-          "name": "is_active",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false,
-          "default": true
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "CURRENT_TIMESTAMP"
+          "default": "(now())"
         },
         "updated_at": {
           "name": "updated_at",
@@ -2655,11 +2662,25 @@
           "notNull": true,
           "autoincrement": false,
           "onUpdate": true,
-          "default": "CURRENT_TIMESTAMP"
+          "default": "(now())"
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "login_attempts_user_id_users_user_id_fk": {
+          "name": "login_attempts_user_id_users_user_id_fk",
+          "tableFrom": "login_attempts",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {
         "login_attempts_attempt_id": {
           "name": "login_attempts_attempt_id",
