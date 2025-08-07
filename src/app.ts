@@ -5,11 +5,14 @@ import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import { errorHandler } from './middlewares/errorHandler.middleware';
 import cookieParser from 'cookie-parser';
+import passport from 'passport';
+import { configurePassport } from './config/passport.config';
 import userTypeRouter from './routes/userType.routes';
 import userRegistrationRouter from './routes/userRegistration.routes';
 import otpRouter from './routes/otp.routes';
 import adminRouter from './routes/admin.routes';
 import loginRouter from './routes/login.routes';
+
 class App {
   public app: Application;
 
@@ -42,6 +45,12 @@ class App {
     );
     this.app.use(morgan('dev'));
     this.app.use(cookieParser());
+
+    // Initialize Passport
+    this.app.use(passport.initialize());
+
+    // Configure Passport strategies
+    configurePassport();
   }
 
   private setRoutes(): void {
