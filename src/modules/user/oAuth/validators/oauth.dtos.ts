@@ -172,3 +172,23 @@ export const OAuthLinkRequestSchema = z.object({
   refreshToken: z.string().optional(),
   tokenExpiresAt: z.coerce.date().optional(),
 });
+
+// OAuth Login Response Schema
+export const oauthLoginResponseSchema = z
+  .object({
+    statusCode: z.number().int(),
+    data: z.object({
+      user: z.any(), // User data from login
+      tokens: z.object({
+        accessToken: z.string(),
+        refreshToken: z.string(),
+      }),
+      isNewUser: z.boolean(),
+      isLinked: z.boolean(),
+      provider: z.string(),
+      expiresIn: z.number(),
+    }),
+    message: z.string(),
+    success: z.boolean(),
+  })
+  .strict();

@@ -43,10 +43,3 @@ export interface OAuthProfile {
   photos?: Array<{ value: string }>;
   provider: OAuthProvider;
 }
-
-export interface OAuthUserResult {
-  user: any; // Replace with actual user type
-  oauthMetadata: any; // Replace with actual oauthMetadata type
-  isNewUser: boolean;
-  isLinked: boolean;
-}

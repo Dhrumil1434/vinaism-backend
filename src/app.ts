@@ -6,7 +6,6 @@ import rateLimit from 'express-rate-limit';
 import { errorHandler } from './middlewares/errorHandler.middleware';
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
-import { configurePassport } from './config/passport.config';
 import userTypeRouter from './routes/userType.routes';
 import userRegistrationRouter from './routes/userRegistration.routes';
 import otpRouter from './routes/otp.routes';
@@ -50,7 +49,6 @@ class App {
     this.app.use(passport.initialize());
 
     // Configure Passport strategies
-    configurePassport();
   }
 
   private setRoutes(): void {
