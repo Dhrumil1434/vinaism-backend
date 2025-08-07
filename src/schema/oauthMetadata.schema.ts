@@ -1,7 +1,6 @@
 import {
   int,
   mysqlTable,
-  serial,
   text,
   timestamp,
   varchar,
@@ -13,7 +12,7 @@ import { timestamps } from './helpers/column.helpers';
 export const oauthMetadata = mysqlTable(
   'oauth_metadata',
   {
-    id: serial('id').primaryKey(),
+    id: int('id').autoincrement().primaryKey(),
     userId: int('user_id')
       .references(() => users.userId)
       .notNull(),

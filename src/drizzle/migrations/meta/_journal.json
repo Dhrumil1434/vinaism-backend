@@ -8,6 +8,20 @@
       "when": 1754550826877,
       "tag": "0000_illegal_moondragon",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1754554515303,
+      "tag": "0001_add_oauth_metadata",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1754554545681,
+      "tag": "0002_add_oauth_foreign_key",
+      "breakpoints": true
     }
   ]
 }
