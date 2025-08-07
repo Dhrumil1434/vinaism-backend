@@ -2,7 +2,6 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 import { Strategy as AppleStrategy } from 'passport-apple';
-import { OAuthProvider } from '../modules/user/oAuth/types/oauth.types';
 
 // OAuth configuration for each provider
 const oauthConfig = {
@@ -36,34 +35,9 @@ export const configurePassport = () => {
         clientSecret: oauthConfig.google.clientSecret,
         callbackURL: oauthConfig.google.callbackURL,
       },
-      async (accessToken, refreshToken, profile, done) => {
-        try {
-          // Import OAuthService here to avoid circular dependencies
-          const { OAuthService } = await import(
-            '../modules/user/oAuth/oauth.service'
-          );
-
-          // Process the OAuth profile and create/find user
-          const oauthResult = await OAuthService.findOrCreateOAuthUser(
-            'google' as OAuthProvider,
-            {
-              id: profile.id,
-              email: profile.emails?.[0]?.value || '',
-              name: {
-                firstName: profile.name?.givenName,
-                lastName: profile.name?.familyName,
-              },
-              photos: profile.photos,
-              provider: 'google',
-            },
-            accessToken,
-            refreshToken
-          );
-
-          return done(null, oauthResult.user);
-        } catch (error) {
-          return done(error, null);
-        }
+      (accessToken, refreshToken, profile, done) => {
+        // Placeholder: just pass the profile
+        return done(null, profile);
       }
     )
   );
@@ -77,32 +51,9 @@ export const configurePassport = () => {
         callbackURL: oauthConfig.facebook.callbackURL,
         profileFields: oauthConfig.facebook.profileFields,
       },
-      async (accessToken, refreshToken, profile, done) => {
-        try {
-          const { OAuthService } = await import(
-            '../modules/user/oAuth/oauth.service'
-          );
-
-          const oauthResult = await OAuthService.findOrCreateOAuthUser(
-            'facebook' as OAuthProvider,
-            {
-              id: profile.id,
-              email: profile.emails?.[0]?.value || '',
-              name: {
-                firstName: profile.name?.givenName,
-                lastName: profile.name?.familyName,
-              },
-              photos: profile.photos,
-              provider: 'facebook',
-            },
-            accessToken,
-            refreshToken
-          );
-
-          return done(null, oauthResult.user);
-        } catch (error) {
-          return done(error, null);
-        }
+      (accessToken, refreshToken, profile, done) => {
+        // Placeholder: just pass the profile
+        return done(null, profile);
       }
     )
   );
@@ -116,43 +67,11 @@ export const configurePassport = () => {
         keyID: oauthConfig.apple.keyID,
         privateKeyLocation: oauthConfig.apple.privateKeyLocation,
         callbackURL: oauthConfig.apple.callbackURL,
-        passReqToCallback: oauthConfig.apple.passReqToCallback,
+        passReqToCallback: true,
       },
-      async (req, accessToken, refreshToken, idToken, profile, done) => {
-        try {
-          const { OAuthService } = await import(
-            '../modules/user/oAuth/oauth.service'
-          );
-
-          // Apple provides user info in the initial response if it's the first login
-          let userInfo = {
-            id: profile.id,
-            email: profile.email || '',
-            name: profile.name,
-            photos: [],
-            provider: 'apple' as OAuthProvider,
-          };
-
-          // If Apple provided user info in the initial response
-          if (req.body?.user) {
-            userInfo = {
-              ...userInfo,
-              email: req.body.user.email || userInfo.email,
-              name: req.body.user.name || userInfo.name,
-            };
-          }
-
-          const oauthResult = await OAuthService.findOrCreateOAuthUser(
-            'apple' as OAuthProvider,
-            userInfo,
-            accessToken,
-            refreshToken
-          );
-
-          return done(null, oauthResult.user);
-        } catch (error) {
-          return done(error, null);
-        }
+      (req, accessToken, refreshToken, idToken, profile, done) => {
+        // Placeholder: just pass the profile
+        return done(null, profile);
       }
     )
   );
