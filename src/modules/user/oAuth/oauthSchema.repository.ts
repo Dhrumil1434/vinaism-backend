@@ -1,3 +1,7 @@
+import { oauthMetadata } from '@schema-models';
+import { db } from 'db/mysql.db';
+import { and, eq } from 'drizzle-orm';
+
 export class OAuthSchemaRepo {
   /**
    * Find OAuth record by provider and provider user ID
@@ -8,9 +12,20 @@ export class OAuthSchemaRepo {
    * 3. Return first matching record or null
    */
   static async findByProviderAndUserId(
-    _provider: string,
-    _providerUserId: string
+    provider: string,
+    providerUserId: string
   ) {
+    const [result] = await db
+      .select()
+      .from(oauthMetadata)
+      .where(
+        and(
+          eq(oauthMetadata.provider, provider),
+          eq(oauthMetadata.providerUserId, providerUserId),
+          eq(oauthMetadata.is_active, true)
+        )
+      );
+    return result;
     // TODO: Implement find OAuth record by provider and user ID
     // 1. Use db.select().from(oauthMetadata)
     // 2. Add where conditions: provider, providerUserId, is_active = true
