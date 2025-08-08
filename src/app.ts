@@ -6,11 +6,13 @@ import rateLimit from 'express-rate-limit';
 import { errorHandler } from './middlewares/errorHandler.middleware';
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
+import { initializePassport } from './config/passport.config';
 import userTypeRouter from './routes/userType.routes';
 import userRegistrationRouter from './routes/userRegistration.routes';
 import otpRouter from './routes/otp.routes';
 import adminRouter from './routes/admin.routes';
 import loginRouter from './routes/login.routes';
+import oauthRouter from './routes/oauth.routes';
 
 class App {
   public app: Application;
@@ -45,10 +47,9 @@ class App {
     this.app.use(morgan('dev'));
     this.app.use(cookieParser());
 
-    // Initialize Passport
-    this.app.use(passport.initialize());
-
-    // Configure Passport strategies
+    // Initialize Passport with our configuration
+    this.app.use(initializePassport());
+    this.app.use(passport.session());
   }
 
   private setRoutes(): void {
@@ -57,6 +58,8 @@ class App {
     this.app.use('/api/otp', otpRouter);
     this.app.use('/api/admin', adminRouter);
     this.app.use('/api/userLogin', loginRouter);
+    this.app.use('/api/auth', oauthRouter);
+
     // Add more routes here or import from separate files
   }
 
