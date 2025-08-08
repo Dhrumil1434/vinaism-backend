@@ -1,6 +1,6 @@
 import z from 'zod';
 import { OAuthZodMessage } from '../oauth.constants';
-
+import { userType as userTypeId } from '../../registration/validators/registration.dtos';
 export const oauthId = z.number().int().positive();
 export const oauthUserId = z
   .number(OAuthZodMessage.USER_ID_REQUIRED)
@@ -22,8 +22,9 @@ export const oauthTokenExpiresAt = z.coerce.date().optional();
 export const oauthIsActive = z.boolean().default(true).optional();
 export const oauthCreatedAt = z.date().or(z.string());
 export const oauthUpdatedAt = z.date().or(z.string());
-
+const userType = userTypeId;
 export const oauthBaseFields = {
+  userType: userType,
   id: oauthId,
   userId: oauthUserId,
   provider: oauthProvider,

@@ -23,7 +23,7 @@ const lastName = z
   .string()
   .nonempty(UserRegistrationZodMessage.LAST_NAME_REQUIRED);
 const password = z.string().min(6, UserRegistrationZodMessage.PASSWORD_MIN);
-const userType = z.coerce
+export const userType = z.coerce
   .number(UserRegistrationZodMessage.USER_TYPE_REQUIRED)
   .int();
 const is_active = z.boolean().default(false).optional();
