@@ -15,6 +15,8 @@ export const OAuthZodMessage = {
   PROVIDER_USER_ID_REQUIRED: 'Provider user ID is required',
   EMAIL_INVALID: 'Invalid email format',
   USER_ID_REQUIRED: 'User ID is required',
+  INVALID_USER_TYPE_ID: 'Invalid userTypeId. Must be a number.',
+  USER_TYPE_NOT_FOUND: 'User type does not exist',
 } as const;
 
 export const OAUTH_ERROR_MESSAGES = {

@@ -1,6 +1,10 @@
 import { Router } from 'express';
 import passport from '../config/passport.config';
 import { OAuthController } from '../modules/user/oAuth/oauth.controller';
+import {
+  validateOAuthLinkRequest,
+  requireAuthentication,
+} from '../modules/user/oAuth/middleware/oauth.validation.middleware';
 
 const router = Router();
 
@@ -17,9 +21,21 @@ router.get(
 );
 
 // OAuth Management Routes (require authentication)
-// TODO: Add authentication middleware to these routes
-router.post('/link', OAuthController.linkOAuthAccount);
-router.delete('/unlink/:provider', OAuthController.unlinkOAuthAccount);
-router.get('/connections', OAuthController.getOAuthConnections);
+router.post(
+  '/link',
+  requireAuthentication,
+  validateOAuthLinkRequest,
+  OAuthController.linkOAuthAccount
+);
+router.delete(
+  '/unlink/:provider',
+  requireAuthentication,
+  OAuthController.unlinkOAuthAccount
+);
+router.get(
+  '/connections',
+  requireAuthentication,
+  OAuthController.getOAuthConnections
+);
 
 export default router;

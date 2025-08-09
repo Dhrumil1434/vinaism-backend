@@ -4,12 +4,8 @@ import { ApiError } from '@utils-core';
 import { StatusCodes } from 'http-status-codes';
 import { OAuthUserProfile } from '../../../config/passport.config';
 import { OAuthAction, OAuthErrorCode, OAuthMessage } from './oauth.constants';
-import {
-  IOAuthLoginResponse,
-  IOAuthMetadata,
-  IOAuthResponse,
-  IOAuthTokens,
-} from './oauth.types';
+import { IOAuthMetadata, IOAuthTokens } from './oauth.types';
+import { OAuthLoginData, OAuthManagementData } from './validators/oauth.dto';
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -72,7 +68,7 @@ export class OAuthService {
     userAgent?: string,
     ip?: string,
     userTypeId?: number
-  ): Promise<IOAuthLoginResponse> {
+  ): Promise<OAuthLoginData> {
     try {
       // Step 1: Check if OAuth account already exists
       const existingOAuth = await OAuthSchemaRepo.findByProviderAndUserId(
@@ -127,7 +123,6 @@ export class OAuthService {
           expiresIn,
           oauth: transformedOAuth,
           isNewUser: false,
-          message: OAUTH_SUCCESS_MESSAGES.LOGIN_SUCCESS,
         };
       }
 
@@ -217,7 +212,6 @@ export class OAuthService {
         expiresIn,
         oauth: transformedOAuth,
         isNewUser: true,
-        message: OAUTH_SUCCESS_MESSAGES.LOGIN_SUCCESS,
       };
     } catch (error) {
       console.error('OAuth Service Error:', error);
@@ -243,13 +237,13 @@ export class OAuthService {
     oauthData: {
       provider: string;
       providerUserId: string;
-      providerEmail?: string;
-      providerName?: string;
-      providerPicture?: string;
-      accessToken?: string;
-      refreshToken?: string;
+      providerEmail?: string | undefined;
+      providerName?: string | undefined;
+      providerPicture?: string | undefined;
+      accessToken?: string | undefined;
+      refreshToken?: string | undefined;
     }
-  ): Promise<IOAuthResponse> {
+  ): Promise<OAuthManagementData> {
     try {
       // Check if OAuth account is already linked to any user
       const existingOAuth = await OAuthSchemaRepo.findByProviderAndUserId(
@@ -329,7 +323,7 @@ export class OAuthService {
   static async unlinkOAuthFromUser(
     userId: number,
     provider: string
-  ): Promise<IOAuthResponse> {
+  ): Promise<OAuthManagementData> {
     try {
       // Check if connection exists
       const hasConnection = await OAuthSchemaRepo.hasOAuthConnection(
@@ -372,16 +366,18 @@ export class OAuthService {
   /**
    * Get user's OAuth connections
    */
-  static async getUserOAuthConnections(
-    userId: number
-  ): Promise<IOAuthResponse> {
+  static async getUserOAuthConnections(userId: number): Promise<{
+    success: boolean;
+    message: string;
+    data: any[];
+  }> {
     try {
       const connections = await OAuthSchemaRepo.getUserOAuthConnections(userId);
 
       return {
         success: true,
-        data: connections,
         message: OAUTH_SUCCESS_MESSAGES.OAUTH_CONNECTIONS_RETRIEVED,
+        data: connections,
       };
     } catch (error) {
       console.error('Get OAuth Connections Error:', error);
@@ -400,7 +396,14 @@ export class OAuthService {
   static async checkOAuthConnectionStatus(
     userId: number,
     provider: string
-  ): Promise<IOAuthResponse> {
+  ): Promise<{
+    success: boolean;
+    message: string;
+    data: {
+      provider: string;
+      connected: boolean;
+    };
+  }> {
     try {
       const hasConnection = await OAuthSchemaRepo.hasOAuthConnection(
         userId,
@@ -409,11 +412,11 @@ export class OAuthService {
 
       return {
         success: true,
+        message: OAUTH_SUCCESS_MESSAGES.OAUTH_CONNECTION_STATUS_RETRIEVED,
         data: {
           provider,
           connected: hasConnection,
         },
-        message: OAUTH_SUCCESS_MESSAGES.OAUTH_CONNECTION_STATUS_RETRIEVED,
       };
     } catch (error) {
       console.error('Check OAuth Connection Error:', error);

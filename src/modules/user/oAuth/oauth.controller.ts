@@ -1,12 +1,23 @@
 import { Request, Response, NextFunction } from 'express';
 import { asyncHandler } from '@utils-core';
+import { StatusCodes } from 'http-status-codes';
 import { OAuthService } from './oauth.service';
 import { OAuthUserProfile } from '../../../config/passport.config';
-import { IOAuthLinkRequest } from './oauth.types';
+import { getDefaultUserTypeId } from './utils/userType.util';
+import { OAUTH_SUCCESS_MESSAGES } from './oauth.constants';
 import {
-  validateUserTypeId,
-  getDefaultUserTypeId,
-} from './utils/userType.util';
+  validateUserTypeIdParam,
+  validateOAuthProfile,
+  validateUserAuthentication,
+  validateProviderParam,
+} from './validators/oauth.validators';
+import {
+  oauthInitiationSchemaDto,
+  oauthLinkSchemaDto,
+  oauthLoginApiResponseSchema,
+  oauthManagementApiResponseSchema,
+  oauthConnectionsApiResponseSchema,
+} from './validators/oauth.dto';
 import passport from '../../../config/passport.config';
 
 export class OAuthController {
@@ -22,31 +33,17 @@ export class OAuthController {
    */
   static initiateGoogleOAuth = asyncHandler(
     async (req: Request, res: Response, _next: NextFunction) => {
-      const userTypeIdParam = req.query['userTypeId'] as string;
+      // Validate query parameters using DTO
+      const validationResult = oauthInitiationSchemaDto.safeParse(req.query);
+
       let userTypeId: number;
 
-      // Validate userTypeId parameter
-      if (userTypeIdParam) {
-        const parsedUserTypeId = parseInt(userTypeIdParam, 10);
-
-        if (isNaN(parsedUserTypeId)) {
-          return res.status(400).json({
-            success: false,
-            message: 'Invalid userTypeId. Must be a number.',
-          });
-        }
-
-        const isValid = await validateUserTypeId(parsedUserTypeId);
-        if (!isValid) {
-          return res.status(400).json({
-            success: false,
-            message: `Invalid userTypeId: ${parsedUserTypeId}. User type does not exist.`,
-          });
-        }
-
-        userTypeId = parsedUserTypeId;
+      if (validationResult.success && validationResult.data.userTypeId) {
+        // Validate userTypeId exists in database
+        await validateUserTypeIdParam(validationResult.data.userTypeId);
+        userTypeId = validationResult.data.userTypeId;
       } else {
-        // Use default user type if none provided
+        // Use default user type if none provided or validation failed
         userTypeId = await getDefaultUserTypeId();
       }
 
@@ -79,12 +76,8 @@ export class OAuthController {
       // Get user profile from req.user (set by Passport)
       const userProfile = req.user as OAuthUserProfile;
 
-      if (!userProfile) {
-        return res.status(400).json({
-          success: false,
-          message: 'OAuth authentication failed - no user profile received',
-        });
-      }
+      // Validate OAuth profile exists
+      validateOAuthProfile(userProfile);
 
       // Get userTypeId from session (set during initiation)
       const userTypeId = (req.session as any).pendingUserTypeId;
@@ -103,7 +96,7 @@ export class OAuthController {
       const ip = req.ip || req.connection.remoteAddress;
 
       // Process OAuth login through service with userTypeId
-      const result = await OAuthService.handleOAuthLogin(
+      const loginResult = await OAuthService.handleOAuthLogin(
         userProfile,
         userAgent,
         ip,
@@ -113,12 +106,16 @@ export class OAuthController {
       // Clean up session
       delete (req.session as any).pendingUserTypeId;
 
-      // Return success response with user data
-      return res.status(200).json({
+      // Validate response using DTO
+      const validatedResponse = oauthLoginApiResponseSchema.parse({
+        statusCode: StatusCodes.OK,
+        data: loginResult,
+        message: OAUTH_SUCCESS_MESSAGES.LOGIN_SUCCESS,
         success: true,
-        message: result.message,
-        data: result,
       });
+
+      // Return validated response
+      return res.status(validatedResponse.statusCode).json(validatedResponse);
     }
   );
 
@@ -137,31 +134,27 @@ export class OAuthController {
       // Get userId from authenticated user (requires auth middleware)
       const userId = (req.user as any)?.userId;
 
-      if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: 'Authentication required',
-        });
-      }
+      // Validate user authentication
+      validateUserAuthentication(userId);
 
-      // Extract OAuth data from request body
-      const oauthData: IOAuthLinkRequest = req.body;
-
-      if (!oauthData.provider || !oauthData.providerUserId) {
-        return res.status(400).json({
-          success: false,
-          message: 'Provider and providerUserId are required',
-        });
-      }
+      // Validate request body using DTO
+      const validatedData = oauthLinkSchemaDto.parse(req.body);
 
       // Link OAuth account to user
-      const result = await OAuthService.linkOAuthToUser(userId, oauthData);
+      const linkResult = await OAuthService.linkOAuthToUser(
+        userId,
+        validatedData
+      );
 
-      return res.status(200).json({
+      // Validate response using DTO
+      const validatedResponse = oauthManagementApiResponseSchema.parse({
+        statusCode: StatusCodes.OK,
+        data: linkResult,
+        message: linkResult.message,
         success: true,
-        message: result.message,
-        data: result,
       });
+
+      return res.status(validatedResponse.statusCode).json(validatedResponse);
     }
   );
 
@@ -181,31 +174,28 @@ export class OAuthController {
       // Get userId from authenticated user (requires auth middleware)
       const userId = (req.user as any)?.userId;
 
-      if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: 'Authentication required',
-        });
-      }
+      // Validate user authentication
+      validateUserAuthentication(userId);
 
-      // Extract provider from request parameters
+      // Extract and validate provider from request parameters
       const { provider } = req.params;
-
-      if (!provider) {
-        return res.status(400).json({
-          success: false,
-          message: 'Provider parameter is required',
-        });
-      }
+      validateProviderParam(provider);
 
       // Unlink OAuth account
-      const result = await OAuthService.unlinkOAuthFromUser(userId, provider);
+      const unlinkResult = await OAuthService.unlinkOAuthFromUser(
+        userId,
+        provider!
+      );
 
-      return res.status(200).json({
+      // Validate response using DTO
+      const validatedResponse = oauthManagementApiResponseSchema.parse({
+        statusCode: StatusCodes.OK,
+        data: unlinkResult,
+        message: unlinkResult.message,
         success: true,
-        message: result.message,
-        data: result,
       });
+
+      return res.status(validatedResponse.statusCode).json(validatedResponse);
     }
   );
 
@@ -223,21 +213,22 @@ export class OAuthController {
       // Get userId from authenticated user (requires auth middleware)
       const userId = (req.user as any)?.userId;
 
-      if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: 'Authentication required',
-        });
-      }
+      // Validate user authentication
+      validateUserAuthentication(userId);
 
       // Get user's OAuth connections
-      const result = await OAuthService.getUserOAuthConnections(userId);
+      const connectionsResult =
+        await OAuthService.getUserOAuthConnections(userId);
 
-      return res.status(200).json({
+      // Validate response using DTO
+      const validatedResponse = oauthConnectionsApiResponseSchema.parse({
+        statusCode: StatusCodes.OK,
+        data: connectionsResult.data,
+        message: connectionsResult.message,
         success: true,
-        message: result.message,
-        data: result.data,
       });
+
+      return res.status(validatedResponse.statusCode).json(validatedResponse);
     }
   );
 }
