@@ -1,4 +1,4 @@
-import { oauthMetadata } from '@schema-models';
+import { oauthMetadata, users } from '@schema-models';
 import { db } from 'db/mysql.db';
 import { and, eq } from 'drizzle-orm';
 
@@ -39,11 +39,12 @@ export class OAuthSchemaRepo {
    * 1. Query users table for matching email
    * 2. Return first matching user or null
    */
-  static async findUserByEmail(_email: string) {
-    // TODO: Implement find user by email
-    // 1. Use db.select().from(users)
-    // 2. Add where condition: email = provided email
-    // 3. Return first result or null
+  static async findUserByEmail(email: string) {
+    const [result] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email));
+    return result || null;
   }
 
   /**
@@ -54,11 +55,13 @@ export class OAuthSchemaRepo {
    * 2. Filter by oauthMetadata.id
    * 3. Return user data with OAuth information
    */
-  static async getUserByOAuthId(_oauthId: number) {
-    // TODO: Implement get user by OAuth ID
-    // 1. Use db.select().from(users).innerJoin(oauthMetadata)
-    // 2. Add where condition: oauthMetadata.id = oauthId
-    // 3. Return joined result
+  static async getUserByOAuthId(oauthId: number) {
+    const [result] = await db
+      .select()
+      .from(users)
+      .innerJoin(oauthMetadata, eq(users.userId, oauthMetadata.userId))
+      .where(eq(oauthMetadata.id, oauthId));
+    return result || null;
   }
 
   /**
@@ -70,11 +73,24 @@ export class OAuthSchemaRepo {
    * 3. Set createdAt and updatedAt timestamps
    * 4. Return created record
    */
-  static async createOAuthRecord(_data: any) {
-    // TODO: Implement create OAuth record
-    // 1. Use db.insert(oauthMetadata).values(data)
-    // 2. Include createdAt and updatedAt as ISO strings
-    // 3. Return insert result
+  static async createOAuthRecord(data: {
+    userId: number;
+    provider: string;
+    providerUserId: string;
+    providerEmail?: string;
+    providerName?: string;
+    providerPicture?: string;
+    accessToken?: string;
+    refreshToken?: string;
+    tokenExpiresAt?: Date;
+  }) {
+    const now = new Date().toISOString();
+    const [result] = await db.insert(oauthMetadata).values({
+      ...data,
+      createdAt: now,
+      updatedAt: now,
+    });
+    return result;
   }
 
   /**
@@ -86,18 +102,21 @@ export class OAuthSchemaRepo {
    * 3. Return update result
    */
   static async updateOAuthTokens(
-    _oauthId: number,
-    _tokens: {
+    oauthId: number,
+    tokens: {
       accessToken: string;
       refreshToken?: string;
       tokenExpiresAt: Date;
     }
   ) {
-    // TODO: Implement update OAuth tokens
-    // 1. Use db.update(oauthMetadata).set(tokens)
-    // 2. Add where condition: id = oauthId
-    // 3. Include updatedAt as ISO string
-    // 4. Return update result
+    const [result] = await db
+      .update(oauthMetadata)
+      .set({
+        ...tokens,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(oauthMetadata.id, oauthId));
+    return result;
   }
 
   /**
@@ -109,19 +128,34 @@ export class OAuthSchemaRepo {
    * 3. Set appropriate default values for OAuth users
    * 4. Return created user
    */
-  static async createUser(_userData: {
+  static async createUser(userData: {
     email: string;
     firstName?: string;
     lastName?: string;
     userType: number;
-    isEmailVerified: boolean;
-    isActive: boolean;
+    profilePicture?: string;
   }) {
-    // TODO: Implement create user
-    // 1. Use db.insert(users).values(userData)
-    // 2. Add required fields: userName, profilePicture, phoneNumber, password, admin_approved
-    // 3. Set appropriate defaults for OAuth users
-    // 4. Return insert result
+    const now = new Date().toISOString();
+
+    // Generate username from email (first part before @)
+    const userName = userData.email.split('@')[0];
+
+    const [result] = await db.insert(users).values({
+      userName: userName || '',
+      profilePicture: userData.profilePicture || '',
+      phoneNumber: '', // OAuth users might not have phone initially
+      email: userData.email,
+      firstName: userData.firstName || '',
+      lastName: userData.lastName || '',
+      password: null, // OAuth users don't need passwords
+      userType: userData.userType,
+      email_verified: true, // OAuth emails are pre-verified
+      phone_verified: false,
+      admin_approved: false, // Will need admin approval
+      createdAt: now,
+      updatedAt: now,
+    });
+    return result;
   }
 
   /**
@@ -133,11 +167,21 @@ export class OAuthSchemaRepo {
    * 3. Filter by is_active = true to ensure record exists
    * 4. Return update result
    */
-  static async deleteOAuthRecord(_userId: number, _provider: string) {
-    // TODO: Implement soft delete OAuth record
-    // 1. Use db.update(oauthMetadata).set({ is_active: false, updatedAt })
-    // 2. Add where conditions: userId, provider, is_active = true
-    // 3. Return update result
+  static async deleteOAuthRecord(userId: number, provider: string) {
+    const [result] = await db
+      .update(oauthMetadata)
+      .set({
+        is_active: false,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(
+        and(
+          eq(oauthMetadata.userId, userId),
+          eq(oauthMetadata.provider, provider),
+          eq(oauthMetadata.is_active, true)
+        )
+      );
+    return result;
   }
 
   /**
@@ -149,11 +193,21 @@ export class OAuthSchemaRepo {
    * 3. Filter by userId and is_active = true
    * 4. Return array of OAuth connections
    */
-  static async getUserOAuthConnections(_userId: number) {
-    // TODO: Implement get user OAuth connections
-    // 1. Use db.select() with specific fields from oauthMetadata
-    // 2. Add where conditions: userId, is_active = true
-    // 3. Return array of results
+  static async getUserOAuthConnections(userId: number) {
+    const results = await db
+      .select({
+        id: oauthMetadata.id,
+        provider: oauthMetadata.provider,
+        providerUserId: oauthMetadata.providerUserId,
+        providerEmail: oauthMetadata.providerEmail,
+        providerName: oauthMetadata.providerName,
+        createdAt: oauthMetadata.createdAt,
+      })
+      .from(oauthMetadata)
+      .where(
+        and(eq(oauthMetadata.userId, userId), eq(oauthMetadata.is_active, true))
+      );
+    return results;
   }
 
   /**
@@ -164,10 +218,17 @@ export class OAuthSchemaRepo {
    * 2. Filter by is_active = true
    * 3. Return boolean indicating if connection exists
    */
-  static async hasOAuthConnection(_userId: number, _provider: string) {
-    // TODO: Implement check OAuth connection exists
-    // 1. Use db.select({ id }).from(oauthMetadata)
-    // 2. Add where conditions: userId, provider, is_active = true
-    // 3. Return boolean (!!result)
+  static async hasOAuthConnection(userId: number, provider: string) {
+    const [result] = await db
+      .select({ id: oauthMetadata.id })
+      .from(oauthMetadata)
+      .where(
+        and(
+          eq(oauthMetadata.userId, userId),
+          eq(oauthMetadata.provider, provider),
+          eq(oauthMetadata.is_active, true)
+        )
+      );
+    return !!result;
   }
 }

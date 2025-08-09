@@ -3,6 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
+import session from 'express-session';
 import { errorHandler } from './middlewares/errorHandler.middleware';
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
@@ -46,6 +47,22 @@ class App {
     );
     this.app.use(morgan('dev'));
     this.app.use(cookieParser());
+
+    // Configure session middleware
+    this.app.use(
+      session({
+        secret:
+          process.env['SESSION_SECRET'] ||
+          'your-secret-key-change-in-production',
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+          secure: process.env['NODE_ENV'] === 'production', // Use HTTPS in production
+          httpOnly: true,
+          maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        },
+      })
+    );
 
     // Initialize Passport with our configuration
     this.app.use(initializePassport());
