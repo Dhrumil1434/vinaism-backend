@@ -240,4 +240,18 @@ export class OAuthSchemaRepo {
       );
     return !!result;
   }
+
+  /**
+   * Update user's userType
+   */
+  static async updateUserType(userId: number, userTypeId: number) {
+    const [result] = await db
+      .update(users)
+      .set({
+        userType: userTypeId,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(users.userId, userId));
+    return result;
+  }
 }

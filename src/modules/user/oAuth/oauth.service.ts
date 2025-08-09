@@ -130,6 +130,13 @@ export class OAuthService {
       let user = null;
       if (profile.email) {
         user = await OAuthSchemaRepo.findUserByEmail(profile.email);
+
+        // If user exists but with different userType, update it
+        if (user && userTypeId && user.userType !== userTypeId) {
+          await OAuthSchemaRepo.updateUserType(user.userId, userTypeId);
+          // Refresh user data
+          user = await OAuthSchemaRepo.findUserByEmail(profile.email);
+        }
       }
 
       // Step 3: Create new user if doesn't exist
@@ -143,9 +150,11 @@ export class OAuthService {
           );
         }
 
+        const finalUserTypeId = userTypeId || OAuthConfig.DEFAULT_USER_TYPE_ID;
+
         const userCreateData = {
           email: profile.email,
-          userType: userTypeId || OAuthConfig.DEFAULT_USER_TYPE_ID,
+          userType: finalUserTypeId,
           ...(profile.firstName && { firstName: profile.firstName }),
           ...(profile.lastName && { lastName: profile.lastName }),
           ...(profile.picture && { profilePicture: profile.picture }),

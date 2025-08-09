@@ -12,7 +12,6 @@ import {
   validateProviderParam,
 } from './validators/oauth.validators';
 import {
-  oauthInitiationSchemaDto,
   oauthLinkSchemaDto,
   oauthLoginApiResponseSchema,
   oauthManagementApiResponseSchema,
@@ -33,21 +32,43 @@ export class OAuthController {
    */
   static initiateGoogleOAuth = asyncHandler(
     async (req: Request, res: Response, _next: NextFunction) => {
-      // Validate query parameters using DTO
-      const validationResult = oauthInitiationSchemaDto.safeParse(req.query);
-
       let userTypeId: number;
 
-      if (validationResult.success && validationResult.data.userTypeId) {
-        // Validate userTypeId exists in database
-        await validateUserTypeIdParam(validationResult.data.userTypeId);
-        userTypeId = validationResult.data.userTypeId;
+      // Check if userTypeId parameter is provided
+      const userTypeIdParam = req.query['userTypeId'] as string;
+
+      if (userTypeIdParam) {
+        // userTypeId is provided - validate it
+        const parsedUserTypeId = parseInt(userTypeIdParam, 10);
+
+        // Check if it's a valid number
+        if (isNaN(parsedUserTypeId) || parsedUserTypeId <= 0) {
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid userTypeId parameter. Must be a positive number.',
+            error: `Received: "${userTypeIdParam}". Expected a positive integer.`,
+          });
+        }
+
+        // Check if userTypeId exists in database
+        try {
+          await validateUserTypeIdParam(parsedUserTypeId);
+          userTypeId = parsedUserTypeId;
+        } catch (error: any) {
+          return res.status(400).json({
+            success: false,
+            message:
+              error.message || 'Invalid userTypeId. User type does not exist.',
+            error: `UserType ID ${parsedUserTypeId} not found in database.`,
+          });
+        }
       } else {
-        // Use default user type if none provided or validation failed
+        // No userTypeId provided - use default
         userTypeId = await getDefaultUserTypeId();
       }
 
       // Store userTypeId in session for use in callback
+
       (req.session as any).pendingUserTypeId = userTypeId;
 
       // Proceed with Google OAuth
@@ -80,16 +101,17 @@ export class OAuthController {
       validateOAuthProfile(userProfile);
 
       // Get userTypeId from session (set during initiation)
-      const userTypeId = (req.session as any).pendingUserTypeId;
+      let userTypeId = (req.session as any).pendingUserTypeId;
 
       if (!userTypeId) {
         // Fallback to default if session doesn't have userTypeId
-        const defaultUserTypeId = await getDefaultUserTypeId();
-        console.warn(
-          'No userTypeId in session, using default:',
-          defaultUserTypeId
-        );
+        userTypeId = await getDefaultUserTypeId();
+        console.warn('No userTypeId in session, using default:', userTypeId);
       }
+
+      // Ensure userTypeId is a number
+      const finalUserTypeId =
+        typeof userTypeId === 'string' ? parseInt(userTypeId, 10) : userTypeId;
 
       // Extract request metadata
       const userAgent = req.get('User-Agent');
@@ -100,7 +122,7 @@ export class OAuthController {
         userProfile,
         userAgent,
         ip,
-        userTypeId || (await getDefaultUserTypeId())
+        finalUserTypeId
       );
 
       // Clean up session
@@ -228,6 +250,122 @@ export class OAuthController {
         success: true,
       });
 
+      return res.status(validatedResponse.statusCode).json(validatedResponse);
+    }
+  );
+
+  /**
+   * Initiate Facebook OAuth with optional userTypeId parameter
+   *
+   * Steps:
+   * 1. Extract and validate userTypeId from query params
+   * 2. Store userTypeId in session for callback use
+   * 3. Redirect to Facebook OAuth
+   */
+  static initiateFacebookOAuth = asyncHandler(
+    async (req: Request, res: Response, _next: NextFunction) => {
+      let userTypeId: number;
+
+      // Check if userTypeId parameter is provided
+      const userTypeIdParam = req.query['userTypeId'] as string;
+
+      if (userTypeIdParam) {
+        // userTypeId is provided - validate it
+        const parsedUserTypeId = parseInt(userTypeIdParam, 10);
+
+        // Check if it's a valid number
+        if (isNaN(parsedUserTypeId) || parsedUserTypeId <= 0) {
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid userTypeId parameter. Must be a positive number.',
+            error: `Received: "${userTypeIdParam}". Expected a positive integer.`,
+          });
+        }
+
+        // Check if userTypeId exists in database
+        try {
+          await validateUserTypeIdParam(parsedUserTypeId);
+          userTypeId = parsedUserTypeId;
+        } catch (error: any) {
+          return res.status(400).json({
+            success: false,
+            message:
+              error.message || 'Invalid userTypeId. User type does not exist.',
+            error: `UserType ID ${parsedUserTypeId} not found in database.`,
+          });
+        }
+      } else {
+        // No userTypeId provided - use default
+        userTypeId = await getDefaultUserTypeId();
+      }
+
+      // Store userTypeId in session for use in callback
+      (req.session as any).pendingUserTypeId = userTypeId;
+
+      // Proceed with Facebook OAuth
+      return passport.authenticate('facebook', {
+        scope: ['email', 'public_profile'],
+      })(req, res, _next);
+    }
+  );
+
+  /**
+   * Handle Facebook OAuth callback
+   * This is called after Passport strategy processes the OAuth response
+   *
+   * Steps:
+   * 1. Extract userProfile from req.user (set by Passport)
+   * 2. Get userTypeId from session (set during initiation)
+   * 3. Validate that user profile exists
+   * 4. Call OAuthService.handleOAuthLogin with profile data and userTypeId
+   * 5. Return success response with user data and JWT tokens
+   * 6. Handle errors appropriately
+   */
+  static handleFacebookCallback = asyncHandler(
+    async (req: Request, res: Response, _next: NextFunction) => {
+      // Get user profile from req.user (set by Passport)
+      const userProfile = req.user as OAuthUserProfile;
+
+      // Validate OAuth profile exists
+      validateOAuthProfile(userProfile);
+
+      // Get userTypeId from session (set during initiation)
+      let userTypeId = (req.session as any).pendingUserTypeId;
+
+      if (!userTypeId) {
+        // Fallback to default if session doesn't have userTypeId
+        userTypeId = await getDefaultUserTypeId();
+        console.warn('No userTypeId in session, using default:', userTypeId);
+      }
+
+      // Ensure userTypeId is a number
+      const finalUserTypeId =
+        typeof userTypeId === 'string' ? parseInt(userTypeId, 10) : userTypeId;
+
+      // Extract request metadata
+      const userAgent = req.get('User-Agent');
+      const ip = req.ip || req.connection.remoteAddress;
+
+      // Process OAuth login through service with userTypeId
+      const loginResult = await OAuthService.handleOAuthLogin(
+        userProfile,
+        userAgent,
+        ip,
+        finalUserTypeId
+      );
+
+      // Clean up session
+      delete (req.session as any).pendingUserTypeId;
+
+      // Validate response using DTO
+      const validatedResponse = oauthLoginApiResponseSchema.parse({
+        statusCode: StatusCodes.OK,
+        data: loginResult,
+        message: OAUTH_SUCCESS_MESSAGES.LOGIN_SUCCESS,
+        success: true,
+      });
+
+      // Return validated response
       return res.status(validatedResponse.statusCode).json(validatedResponse);
     }
   );

@@ -20,6 +20,18 @@ router.get(
   OAuthController.handleGoogleCallback
 );
 
+// Facebook OAuth Routes with optional userTypeId parameter
+router.get('/facebook', OAuthController.initiateFacebookOAuth);
+
+router.get(
+  '/facebook/callback',
+  passport.authenticate('facebook', {
+    failureRedirect: '/login',
+    session: true,
+  }),
+  OAuthController.handleFacebookCallback
+);
+
 // OAuth Management Routes (require authentication)
 router.post(
   '/link',

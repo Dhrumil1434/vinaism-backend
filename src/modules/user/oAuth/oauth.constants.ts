@@ -15,8 +15,10 @@ export const OAuthZodMessage = {
   PROVIDER_USER_ID_REQUIRED: 'Provider user ID is required',
   EMAIL_INVALID: 'Invalid email format',
   USER_ID_REQUIRED: 'User ID is required',
-  INVALID_USER_TYPE_ID: 'Invalid userTypeId. Must be a number.',
+  INVALID_USER_TYPE_ID: 'Invalid userTypeId. Must be a valid number.',
   USER_TYPE_NOT_FOUND: 'User type does not exist',
+  INVALID_USER_TYPE_FORMAT: 'Invalid userTypeId format. Must be a number.',
+  USER_TYPE_REQUIRED: 'userTypeId is required when provided',
 } as const;
 
 export const OAUTH_ERROR_MESSAGES = {
@@ -97,7 +99,7 @@ export const OAuthConfig = {
   ACCESS_TOKEN_EXPIRY_SECONDS: 3600, // 1 hour
 
   // Default user type for OAuth users
-  DEFAULT_USER_TYPE_ID: 1,
+  DEFAULT_USER_TYPE_ID: 32, // Updated to match your actual database
 
   // OAuth scopes
   GOOGLE_SCOPES: ['profile', 'email'],
