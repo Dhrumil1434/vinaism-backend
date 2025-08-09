@@ -39,6 +39,7 @@ const initializePassportStrategies = () => {
               lastName: profile.name?.familyName,
               displayName: profile.displayName,
               picture: profile.photos?.[0]?.value,
+              phoneNumber: profile.phoneNumbers?.[0]?.value, // Phone number if available
               accessToken,
               refreshToken,
               providerData: profile._json,
@@ -100,6 +101,7 @@ export interface OAuthUserProfile {
   lastName?: string;
   displayName?: string;
   picture?: string;
+  phoneNumber?: string; // Phone number from OAuth provider (if available)
   accessToken: string;
   refreshToken?: string;
   idToken?: string;

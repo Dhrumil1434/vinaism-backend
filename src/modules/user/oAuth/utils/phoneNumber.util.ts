@@ -21,6 +21,29 @@ export function generateOAuthPhonePlaceholder(userTypeId: number): string {
 }
 
 /**
+ * Handle phone number for OAuth user creation
+ * Returns actual phone if provided by OAuth provider, otherwise generates placeholder
+ */
+export function handleOAuthPhoneNumber(
+  providerPhoneNumber: string | undefined | null,
+  userTypeId: number
+): { phoneNumber: string; isRealPhone: boolean } {
+  // If OAuth provider gave us a real phone number, use it
+  if (providerPhoneNumber && providerPhoneNumber.trim() !== '') {
+    return {
+      phoneNumber: providerPhoneNumber.trim(),
+      isRealPhone: true,
+    };
+  }
+
+  // Otherwise, generate unique placeholder to avoid DB constraint violations
+  return {
+    phoneNumber: generateOAuthPhonePlaceholder(userTypeId),
+    isRealPhone: false,
+  };
+}
+
+/**
  * Get display-friendly phone number for OAuth users
  * Returns null for OAuth placeholders, actual number for real phone numbers
  */

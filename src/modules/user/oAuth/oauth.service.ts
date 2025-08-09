@@ -149,6 +149,7 @@ export class OAuthService {
           ...(profile.firstName && { firstName: profile.firstName }),
           ...(profile.lastName && { lastName: profile.lastName }),
           ...(profile.picture && { profilePicture: profile.picture }),
+          ...(profile.phoneNumber && { phoneNumber: profile.phoneNumber }),
         };
         await OAuthSchemaRepo.createUser(userCreateData);
 
