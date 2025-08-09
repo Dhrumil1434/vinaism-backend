@@ -6,12 +6,56 @@ import { OAuthUserProfile } from '../../../config/passport.config';
 import { OAuthAction, OAuthErrorCode, OAuthMessage } from './oauth.constants';
 import {
   IOAuthLoginResponse,
-  IOAuthUser,
   IOAuthMetadata,
   IOAuthResponse,
+  IOAuthTokens,
 } from './oauth.types';
+import {
+  generateAccessToken,
+  generateRefreshToken,
+} from '../login/utils/auth.util';
+import { LoginSchemaRepo } from '../login/loginSchema.repository';
+import { transformUserForLogin } from '../login/utils/login.util';
+import { UserLoginConfig } from '../login/login.constant';
 
 export class OAuthService {
+  /**
+   * Generate JWT tokens and create login session for OAuth user
+   */
+  private static async generateTokensAndSession(
+    user: any,
+    userAgent?: string,
+    ip?: string
+  ): Promise<{ tokens: IOAuthTokens; expiresIn: number }> {
+    // Generate JWT tokens
+    const accessToken = await generateAccessToken({
+      userId: user.userId,
+      email: user.email,
+      userTypeId: user.userType,
+    });
+
+    const refreshToken = generateRefreshToken(user.userId);
+
+    // Store refresh token and create login session
+    await LoginSchemaRepo.storeRefreshToken(
+      user.userId,
+      refreshToken,
+      userAgent,
+      ip
+    );
+
+    // Update last login time
+    await LoginSchemaRepo.updateLastLogin(user.userId);
+
+    return {
+      tokens: {
+        accessToken,
+        refreshToken,
+      },
+      expiresIn: UserLoginConfig.ACCESS_TOKEN_EXPIRY_SECONDS as number,
+    };
+  }
+
   /**
    * Handle OAuth login - main entry point for OAuth authentication
    *
@@ -21,12 +65,12 @@ export class OAuthService {
    * 3. If not exists, checks if user exists by email
    * 4. Creates new user if needed
    * 5. Links OAuth account to user
-   * 6. Returns complete user data
+   * 6. Returns complete user data with JWT tokens
    */
   static async handleOAuthLogin(
     profile: OAuthUserProfile,
-    _userAgent?: string,
-    _ip?: string,
+    userAgent?: string,
+    ip?: string,
     userTypeId?: number
   ): Promise<IOAuthLoginResponse> {
     try {
@@ -61,17 +105,15 @@ export class OAuthService {
           await OAuthSchemaRepo.updateOAuthTokens(existingOAuth.id!, tokenData);
         }
 
-        const transformedUser: IOAuthUser = {
-          userId: user.users.userId,
-          userName: user.users.userName,
-          email: user.users.email,
-          firstName: user.users.firstName,
-          lastName: user.users.lastName,
-          profilePicture: user.users.profilePicture,
-          userType: user.users.userType!,
-          emailVerified: user.users.email_verified,
-          adminApproved: user.users.admin_approved,
-        };
+        // Generate tokens and create session
+        const { tokens, expiresIn } = await this.generateTokensAndSession(
+          user.users,
+          userAgent,
+          ip
+        );
+
+        // Transform user data using existing login utility
+        const transformedUser = await transformUserForLogin(user.users);
 
         const transformedOAuth: IOAuthMetadata = {
           provider: user.oauth_metadata.provider,
@@ -81,6 +123,8 @@ export class OAuthService {
 
         return {
           user: transformedUser,
+          tokens,
+          expiresIn,
           oauth: transformedOAuth,
           isNewUser: false,
           message: OAUTH_SUCCESS_MESSAGES.LOGIN_SUCCESS,
@@ -151,17 +195,15 @@ export class OAuthService {
         profile.providerId
       );
 
-      const transformedUser: IOAuthUser = {
-        userId: user.userId,
-        userName: user.userName,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        profilePicture: user.profilePicture,
-        userType: user.userType!,
-        emailVerified: user.email_verified,
-        adminApproved: user.admin_approved,
-      };
+      // Generate tokens and create session
+      const { tokens, expiresIn } = await this.generateTokensAndSession(
+        user,
+        userAgent,
+        ip
+      );
+
+      // Transform user data using existing login utility
+      const transformedUser = await transformUserForLogin(user);
 
       const transformedOAuth: IOAuthMetadata = {
         provider: completeUserData?.provider || profile.provider,
@@ -171,6 +213,8 @@ export class OAuthService {
 
       return {
         user: transformedUser,
+        tokens,
+        expiresIn,
         oauth: transformedOAuth,
         isNewUser: true,
         message: OAUTH_SUCCESS_MESSAGES.LOGIN_SUCCESS,

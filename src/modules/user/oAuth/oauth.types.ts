@@ -1,21 +1,15 @@
+import { ILoginUser } from '../login/login.types';
+
 export interface IOAuthLoginResponse {
-  user: IOAuthUser;
+  user: ILoginUser;
+  tokens: IOAuthTokens;
+  expiresIn: number;
   oauth: IOAuthMetadata;
   isNewUser: boolean;
   message: string;
 }
 
-export interface IOAuthUser {
-  userId: number;
-  userName: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  profilePicture: string;
-  userType: number;
-  emailVerified: boolean;
-  adminApproved: boolean;
-}
+// Note: We use ILoginUser from login.types for consistency
 
 export interface IOAuthMetadata {
   provider: string;
@@ -37,6 +31,11 @@ export interface IOAuthResponse {
   success: boolean;
   message: string;
   data?: any;
+}
+
+export interface IOAuthTokens {
+  accessToken: string;
+  refreshToken: string;
 }
 
 export interface IOAuthConnection {
