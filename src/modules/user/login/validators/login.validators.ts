@@ -9,6 +9,7 @@ import { LoginSchemaRepo } from '../loginSchema.repository';
 import { verifyPassword } from '../utils/auth.util';
 import { validateUserStatus } from '../utils/login.util';
 import { isValidLoginPhoneNumber } from '../../oAuth/utils/phoneNumber.util.js';
+import { OAuthSchemaRepo } from '../../oAuth/oauthSchema.repository';
 
 /**
  * Validate user exists and can login
@@ -55,6 +56,19 @@ export const validateUserExists = async (
 };
 
 /**
+ * Get OAuth providers for a user
+ */
+const getOAuthProviders = async (userId: number): Promise<string[]> => {
+  try {
+    const connections = await OAuthSchemaRepo.getUserOAuthConnections(userId);
+    return connections.map((conn) => conn.provider);
+  } catch (error) {
+    console.error('Error fetching OAuth providers:', error);
+    return [];
+  }
+};
+
+/**
  * Validate user status for login
  */
 export const validateUserStatusForLogin = async (user: any) => {
@@ -92,20 +106,46 @@ export const validateUserStatusForLogin = async (user: any) => {
  */
 export const validatePassword = async (
   inputPassword: string,
-  hashedPassword: string | null
+  hashedPassword: string | null,
+  userId?: number
 ) => {
   // Check if user is an OAuth user (no password set)
   if (hashedPassword === null || hashedPassword === undefined) {
+    // If userId is provided, check for specific OAuth providers
+    if (userId) {
+      const oauthProviders = await getOAuthProviders(userId);
+
+      if (oauthProviders.length > 0) {
+        const providerList = oauthProviders
+          .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+          .join(', ');
+
+        throw new ApiError(
+          UserLoginAction.LOGIN_USER,
+          StatusCodes.BAD_REQUEST,
+          UserLoginErrorCode.INVALID_CREDENTIALS,
+          `This account is linked to ${providerList}. Please use OAuth login instead of email/password.`,
+          [
+            {
+              field: 'email',
+              message: `This account uses ${providerList} login. Please use the social login button.`,
+            },
+          ]
+        );
+      }
+    }
+
+    // Fallback message if no OAuth providers found or no userId
     throw new ApiError(
       UserLoginAction.LOGIN_USER,
       StatusCodes.BAD_REQUEST,
       UserLoginErrorCode.INVALID_CREDENTIALS,
-      'This account was created using OAuth (Google, Facebook, etc.). Please use OAuth login instead of email/password.',
+      'This account does not have a password set. Please contact support or use OAuth login.',
       [
         {
           field: 'email',
           message:
-            'This account was created using OAuth. Please use OAuth login instead.',
+            'No password set for this account. Please use OAuth login or contact support.',
         },
       ]
     );

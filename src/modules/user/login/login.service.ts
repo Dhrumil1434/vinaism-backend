@@ -57,7 +57,7 @@ export class LoginService {
       await validateUserStatusForLogin(user);
 
       // 4. Verify password
-      await validatePassword(credentials.password, user.password!);
+      await validatePassword(credentials.password, user.password, user.userId);
 
       // 5. Generate tokens with user type information
       const accessToken = await generateAccessToken({
