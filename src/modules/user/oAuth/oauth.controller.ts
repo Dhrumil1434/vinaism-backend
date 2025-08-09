@@ -67,15 +67,17 @@ export class OAuthController {
         userTypeId = await getDefaultUserTypeId();
       }
 
-      // Store userTypeId in session for use in callback
-
-      (req.session as any).pendingUserTypeId = userTypeId;
+      // Store userTypeId in OAuth state parameter (more reliable than session)
+      const state = Buffer.from(JSON.stringify({ userTypeId })).toString(
+        'base64'
+      );
 
       // Proceed with Google OAuth
       return passport.authenticate('google', {
         scope: ['profile', 'email'],
         accessType: 'offline',
         prompt: 'consent',
+        state: state, // Pass userTypeId via OAuth state parameter
       })(req, res, _next);
     }
   );
@@ -100,13 +102,20 @@ export class OAuthController {
       // Validate OAuth profile exists
       validateOAuthProfile(userProfile);
 
-      // Get userTypeId from session (set during initiation)
-      let userTypeId = (req.session as any).pendingUserTypeId;
-
-      if (!userTypeId) {
-        // Fallback to default if session doesn't have userTypeId
+      // Get userTypeId from OAuth state parameter (more reliable than session)
+      let userTypeId: number;
+      try {
+        const state = req.query['state'] as string;
+        if (state) {
+          const decodedState = JSON.parse(
+            Buffer.from(state, 'base64').toString()
+          );
+          userTypeId = decodedState.userTypeId;
+        } else {
+          userTypeId = await getDefaultUserTypeId();
+        }
+      } catch {
         userTypeId = await getDefaultUserTypeId();
-        console.warn('No userTypeId in session, using default:', userTypeId);
       }
 
       // Ensure userTypeId is a number
@@ -125,8 +134,7 @@ export class OAuthController {
         finalUserTypeId
       );
 
-      // Clean up session
-      delete (req.session as any).pendingUserTypeId;
+      // Note: Using OAuth state parameter instead of session for userTypeId persistence
 
       // Validate response using DTO
       const validatedResponse = oauthLoginApiResponseSchema.parse({
@@ -299,12 +307,15 @@ export class OAuthController {
         userTypeId = await getDefaultUserTypeId();
       }
 
-      // Store userTypeId in session for use in callback
-      (req.session as any).pendingUserTypeId = userTypeId;
+      // Store userTypeId in OAuth state parameter (more reliable than session)
+      const state = Buffer.from(JSON.stringify({ userTypeId })).toString(
+        'base64'
+      );
 
       // Proceed with Facebook OAuth
       return passport.authenticate('facebook', {
         scope: ['email', 'public_profile'],
+        state: state, // Pass userTypeId via OAuth state parameter
       })(req, res, _next);
     }
   );
@@ -329,13 +340,20 @@ export class OAuthController {
       // Validate OAuth profile exists
       validateOAuthProfile(userProfile);
 
-      // Get userTypeId from session (set during initiation)
-      let userTypeId = (req.session as any).pendingUserTypeId;
-
-      if (!userTypeId) {
-        // Fallback to default if session doesn't have userTypeId
+      // Get userTypeId from OAuth state parameter (more reliable than session)
+      let userTypeId: number;
+      try {
+        const state = req.query['state'] as string;
+        if (state) {
+          const decodedState = JSON.parse(
+            Buffer.from(state, 'base64').toString()
+          );
+          userTypeId = decodedState.userTypeId;
+        } else {
+          userTypeId = await getDefaultUserTypeId();
+        }
+      } catch {
         userTypeId = await getDefaultUserTypeId();
-        console.warn('No userTypeId in session, using default:', userTypeId);
       }
 
       // Ensure userTypeId is a number
@@ -354,8 +372,7 @@ export class OAuthController {
         finalUserTypeId
       );
 
-      // Clean up session
-      delete (req.session as any).pendingUserTypeId;
+      // Note: Using OAuth state parameter instead of session for userTypeId persistence
 
       // Validate response using DTO
       const validatedResponse = oauthLoginApiResponseSchema.parse({

@@ -48,19 +48,21 @@ class App {
     this.app.use(morgan('dev'));
     this.app.use(cookieParser());
 
-    // Configure session middleware
+    // Configure session middleware with proper settings for OAuth
     this.app.use(
       session({
         secret:
           process.env['SESSION_SECRET'] ||
           'your-secret-key-change-in-production',
         resave: false,
-        saveUninitialized: false,
+        saveUninitialized: true, // Required for OAuth to store userTypeId before authentication
         cookie: {
-          secure: process.env['NODE_ENV'] === 'production', // Use HTTPS in production
+          secure: false, // Set to false for localhost (HTTP)
           httpOnly: true,
           maxAge: 24 * 60 * 60 * 1000, // 24 hours
+          sameSite: 'lax', // Required for OAuth redirects
         },
+        name: 'oauth.session', // Custom session name for better debugging
       })
     );
 
