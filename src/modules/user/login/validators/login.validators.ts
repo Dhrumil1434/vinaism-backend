@@ -92,8 +92,25 @@ export const validateUserStatusForLogin = async (user: any) => {
  */
 export const validatePassword = async (
   inputPassword: string,
-  hashedPassword: string
+  hashedPassword: string | null
 ) => {
+  // Check if user is an OAuth user (no password set)
+  if (hashedPassword === null || hashedPassword === undefined) {
+    throw new ApiError(
+      UserLoginAction.LOGIN_USER,
+      StatusCodes.BAD_REQUEST,
+      UserLoginErrorCode.INVALID_CREDENTIALS,
+      'This account was created using OAuth (Google, Facebook, etc.). Please use OAuth login instead of email/password.',
+      [
+        {
+          field: 'email',
+          message:
+            'This account was created using OAuth. Please use OAuth login instead.',
+        },
+      ]
+    );
+  }
+
   const isValid = await verifyPassword(inputPassword, hashedPassword);
 
   if (!isValid) {

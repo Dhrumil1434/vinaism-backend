@@ -112,8 +112,13 @@ export const hashPassword = async (password: string): Promise<string> => {
  */
 export const verifyPassword = async (
   inputPassword: string,
-  storedPassword: string
+  storedPassword: string | null
 ): Promise<boolean> => {
+  // Handle null/undefined stored password (OAuth users)
+  if (!storedPassword) {
+    return false;
+  }
+
   // Check if stored password is hashed (bcrypt hashes start with $2b$)
   if (storedPassword.startsWith('$2b$')) {
     // Password is hashed, use bcrypt compare
