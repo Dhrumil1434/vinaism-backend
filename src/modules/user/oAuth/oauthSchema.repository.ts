@@ -1,6 +1,7 @@
 import { oauthMetadata, users } from '@schema-models';
 import { db } from 'db/mysql.db';
 import { and, eq } from 'drizzle-orm';
+import { generateOAuthPhonePlaceholder } from './utils/phoneNumber.util';
 
 export class OAuthSchemaRepo {
   /**
@@ -140,17 +141,21 @@ export class OAuthSchemaRepo {
     // Generate username from email (first part before @)
     const userName = userData.email.split('@')[0];
 
+    // Generate unique phone number placeholder for OAuth users
+    // This prevents duplicate key violations on the unique phoneNumber constraint
+    const uniquePhoneNumber = generateOAuthPhonePlaceholder(userData.userType);
+
     const [result] = await db.insert(users).values({
       userName: userName || '',
       profilePicture: userData.profilePicture || '',
-      phoneNumber: '', // OAuth users might not have phone initially
+      phoneNumber: uniquePhoneNumber, // Unique placeholder instead of empty string
       email: userData.email,
       firstName: userData.firstName || '',
       lastName: userData.lastName || '',
       password: null, // OAuth users don't need passwords
       userType: userData.userType,
       email_verified: true, // OAuth emails are pre-verified
-      phone_verified: false,
+      phone_verified: false, // Still false since it's not a real phone number
       admin_approved: false, // Will need admin approval
       createdAt: now,
       updatedAt: now,

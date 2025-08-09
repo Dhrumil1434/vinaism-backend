@@ -8,6 +8,7 @@ import {
 import { LoginSchemaRepo } from '../loginSchema.repository';
 import { verifyPassword } from '../utils/auth.util';
 import { validateUserStatus } from '../utils/login.util';
+import { isValidLoginPhoneNumber } from '../../oAuth/utils/phoneNumber.util.js';
 
 /**
  * Validate user exists and can login
@@ -16,6 +17,23 @@ export const validateUserExists = async (
   email?: string,
   phoneNumber?: string
 ) => {
+  // Validate phone number is not an OAuth placeholder before attempting login
+  if (phoneNumber && !isValidLoginPhoneNumber(phoneNumber)) {
+    throw new ApiError(
+      UserLoginAction.LOGIN_USER,
+      StatusCodes.BAD_REQUEST,
+      UserLoginErrorCode.INVALID_CREDENTIALS,
+      'Phone number login not available for OAuth accounts. Please use email or OAuth login.',
+      [
+        {
+          field: 'phoneNumber',
+          message:
+            'Phone number login not available for OAuth accounts. Please use email or OAuth login.',
+        },
+      ]
+    );
+  }
+
   const user = await LoginSchemaRepo.getUserByEmailOrPhone(email, phoneNumber);
 
   if (!user) {
