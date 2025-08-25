@@ -46,3 +46,33 @@ export interface IOAuthConnection {
   providerName?: string;
   createdAt: string;
 }
+
+// New phone verification types
+export interface IPhoneVerificationRequest {
+  phoneNumber: string;
+}
+
+export interface IPhoneVerificationResponse {
+  success: boolean;
+  message: string;
+  data: {
+    userId: number;
+    phoneNumber: string;
+    otpSent: boolean;
+    message: string;
+  };
+}
+
+export interface IPhoneVerificationData {
+  userId: number;
+  phoneNumber: string;
+  otpCode: string;
+  otpExpiresAt: Date;
+  isNewPhone: boolean;
+}
+
+export interface IPhoneUpdateData {
+  userId: number;
+  phoneNumber: string;
+  phoneVerified: boolean;
+}

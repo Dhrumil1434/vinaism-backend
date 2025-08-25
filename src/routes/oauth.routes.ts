@@ -1,10 +1,8 @@
 import { Router } from 'express';
 import passport from '../config/passport.config';
 import { OAuthController } from '../modules/user/oAuth/oauth.controller';
-import {
-  validateOAuthLinkRequest,
-  requireAuthentication,
-} from '../modules/user/oAuth/middleware/oauth.validation.middleware';
+import { validateOAuthLinkRequest } from '../modules/user/oAuth/middleware/oauth.validation.middleware';
+import { authenticateToken } from '../middlewares/auth.middleware';
 
 const router = Router();
 
@@ -44,19 +42,31 @@ router.get(
 // OAuth Management Routes (require authentication)
 router.post(
   '/link',
-  requireAuthentication,
+  authenticateToken,
   validateOAuthLinkRequest,
   OAuthController.linkOAuthAccount
 );
 router.delete(
   '/unlink/:provider',
-  requireAuthentication,
+  authenticateToken,
   OAuthController.unlinkOAuthAccount
 );
 router.get(
   '/connections',
-  requireAuthentication,
+  authenticateToken,
   OAuthController.getOAuthConnections
+);
+
+// Phone Verification Routes (require authentication)
+router.post(
+  '/verify-phone',
+  authenticateToken,
+  OAuthController.initiatePhoneVerification
+);
+router.post(
+  '/verify-phone/otp',
+  authenticateToken,
+  OAuthController.verifyPhoneOtp
 );
 
 export default router;

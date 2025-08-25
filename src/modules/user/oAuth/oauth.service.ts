@@ -438,4 +438,211 @@ export class OAuthService {
       );
     }
   }
+
+  /**
+   * Initiate phone verification for OAuth users
+   * This method allows OAuth users to verify their phone number
+   */
+  static async initiatePhoneVerification(
+    userId: number,
+    phoneNumber: string
+  ): Promise<{
+    success: boolean;
+    message: string;
+    data: {
+      userId: number;
+      phoneNumber: string;
+      otpSent: boolean;
+      message: string;
+    };
+  }> {
+    try {
+      // Step 1: Validate user exists and is active
+      const user =
+        await OAuthSchemaRepo.getUserByIdForPhoneVerification(userId);
+      if (!user) {
+        throw new ApiError(
+          OAuthAction.PHONE_VERIFICATION,
+          StatusCodes.NOT_FOUND,
+          OAuthErrorCode.OAUTH_USER_NOT_FOUND,
+          OAuthMessage.OAUTH_USER_NOT_FOUND
+        );
+      }
+
+      // Step 2: Check if user has OAuth placeholder phone
+      const hasPlaceholderPhone =
+        await OAuthSchemaRepo.hasOAuthPlaceholderPhone(userId);
+      if (!hasPlaceholderPhone) {
+        throw new ApiError(
+          OAuthAction.PHONE_VERIFICATION,
+          StatusCodes.BAD_REQUEST,
+          OAuthErrorCode.PHONE_VERIFICATION_FAILED,
+          'Phone verification is only available for OAuth users with placeholder phone numbers'
+        );
+      }
+
+      // Step 3: Check if phone number is already in use by another user
+      const isPhoneInUse = await OAuthSchemaRepo.isPhoneNumberInUse(
+        phoneNumber,
+        userId
+      );
+      if (isPhoneInUse) {
+        throw new ApiError(
+          OAuthAction.PHONE_VERIFICATION,
+          StatusCodes.CONFLICT,
+          OAuthErrorCode.PHONE_NUMBER_IN_USE,
+          OAuthMessage.PHONE_NUMBER_IN_USE
+        );
+      }
+
+      // Step 4: Generate OTP
+      const otpCode = this.generateOTP();
+      const otpExpiresAt = this.getOTPExpiryTime();
+
+      // Step 5: Update user's phone number and OTP
+      await OAuthSchemaRepo.updateUserPhoneAndOTP(
+        userId,
+        phoneNumber,
+        otpCode,
+        otpExpiresAt
+      );
+
+      // Step 6: Send OTP to phone number
+      try {
+        await this.sendOTPToPhone(phoneNumber, otpCode);
+      } catch (error) {
+        console.error('Failed to send OTP:', error);
+        throw new ApiError(
+          OAuthAction.OTP_SENDING,
+          StatusCodes.INTERNAL_SERVER_ERROR,
+          OAuthErrorCode.OTP_SENDING_FAILED,
+          OAuthMessage.OTP_SENDING_FAILED
+        );
+      }
+
+      return {
+        success: true,
+        message: OAUTH_SUCCESS_MESSAGES.PHONE_VERIFICATION_INITIATED,
+        data: {
+          userId,
+          phoneNumber,
+          otpSent: true,
+          message: OAUTH_SUCCESS_MESSAGES.OTP_SENT_SUCCESSFULLY,
+        },
+      };
+    } catch (error) {
+      console.error('Phone Verification Error:', error);
+
+      if (error instanceof ApiError) {
+        throw error;
+      }
+
+      throw new ApiError(
+        OAuthAction.PHONE_VERIFICATION,
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        OAuthErrorCode.PHONE_VERIFICATION_FAILED,
+        OAuthMessage.PHONE_VERIFICATION_FAILED
+      );
+    }
+  }
+
+  /**
+   * Verify phone OTP for OAuth users
+   */
+  static async verifyPhoneOtp(
+    userId: number,
+    otp: string
+  ): Promise<{
+    success: boolean;
+    message: string;
+    data: { userId: number; phone_verified: boolean };
+  }> {
+    try {
+      const otpInfo = await OAuthSchemaRepo.getUserOtpInfo(userId);
+
+      if (!otpInfo) {
+        throw new ApiError(
+          OAuthAction.PHONE_VERIFICATION,
+          StatusCodes.NOT_FOUND,
+          OAuthErrorCode.PHONE_NOT_FOUND,
+          'User or OTP not found'
+        );
+      }
+
+      if (!otpInfo.otp_code || !otpInfo.otp_expires_at) {
+        throw new ApiError(
+          OAuthAction.PHONE_VERIFICATION,
+          StatusCodes.BAD_REQUEST,
+          OAuthErrorCode.PHONE_VERIFICATION_FAILED,
+          'No OTP found for this user'
+        );
+      }
+
+      if (new Date() > (otpInfo.otp_expires_at as any as Date)) {
+        throw new ApiError(
+          OAuthAction.PHONE_VERIFICATION,
+          StatusCodes.BAD_REQUEST,
+          OAuthErrorCode.PHONE_VERIFICATION_FAILED,
+          'OTP has expired'
+        );
+      }
+
+      if (otpInfo.otp_code !== otp) {
+        throw new ApiError(
+          OAuthAction.PHONE_VERIFICATION,
+          StatusCodes.BAD_REQUEST,
+          OAuthErrorCode.PHONE_VERIFICATION_FAILED,
+          'Invalid OTP'
+        );
+      }
+
+      await OAuthSchemaRepo.verifyPhoneAndClearOtp(userId);
+
+      return {
+        success: true,
+        message: 'OTP verified successfully',
+        data: { userId, phone_verified: true },
+      };
+    } catch (error) {
+      if (error instanceof ApiError) throw error;
+      throw new ApiError(
+        OAuthAction.PHONE_VERIFICATION,
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        OAuthErrorCode.PHONE_VERIFICATION_FAILED,
+        'Failed to verify OTP'
+      );
+    }
+  }
+
+  /**
+   * Generate OTP for phone verification
+   */
+  private static generateOTP(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  /**
+   * Get OTP expiry time (10 minutes from now)
+   */
+  private static getOTPExpiryTime(): Date {
+    const expiryTime = new Date();
+    expiryTime.setMinutes(expiryTime.getMinutes() + 10);
+    return expiryTime;
+  }
+
+  /**
+   * Send OTP to phone number
+   * TODO: Implement actual SMS service (Twilio, AWS SNS, etc.)
+   */
+  private static async sendOTPToPhone(
+    phoneNumber: string,
+    otp: string
+  ): Promise<void> {
+    // TODO: Implement SMS service
+    console.log(`OTP ${otp} sent to phone: ${phoneNumber}`);
+
+    // For development/testing purposes, we'll simulate successful sending
+    // In production, this should integrate with a real SMS service
+    return Promise.resolve();
+  }
 }

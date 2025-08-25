@@ -254,4 +254,126 @@ export class OAuthSchemaRepo {
       .where(eq(users.userId, userId));
     return result;
   }
+
+  /**
+   * Check if phone number is already in use by another user
+   */
+  static async isPhoneNumberInUse(phoneNumber: string, excludeUserId?: number) {
+    const baseCondition = and(
+      eq(users.phoneNumber, phoneNumber),
+      eq(users.is_active, true)
+    );
+
+    let whereCondition = baseCondition;
+
+    if (excludeUserId !== undefined) {
+      // Drizzle doesn't have direct not-equals helper; use raw SQL condition via and()
+      // We'll filter by phone first, then ensure userId is not the excluded one
+      // This is done by fetching and checking in code for simplicity and portability
+      const [result] = await db
+        .select({ userId: users.userId })
+        .from(users)
+        .where(baseCondition);
+
+      if (!result) return false;
+
+      return result.userId !== excludeUserId;
+    }
+
+    const [result] = await db
+      .select({ userId: users.userId })
+      .from(users)
+      .where(whereCondition);
+
+    return !!result;
+  }
+
+  /**
+   * Update user's phone number and OTP data
+   */
+  static async updateUserPhoneAndOTP(
+    userId: number,
+    phoneNumber: string,
+    otpCode: string,
+    otpExpiresAt: Date
+  ) {
+    const [result] = await db
+      .update(users)
+      .set({
+        phoneNumber: phoneNumber,
+        otp_code: otpCode,
+        otp_expires_at: otpExpiresAt,
+        phone_verified: false, // Reset phone verification status
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(users.userId, userId));
+    return result;
+  }
+
+  /**
+   * Get user by ID for phone verification
+   */
+  static async getUserByIdForPhoneVerification(userId: number) {
+    const [result] = await db
+      .select({
+        userId: users.userId,
+        phoneNumber: users.phoneNumber,
+        email: users.email,
+        userType: users.userType,
+        is_active: users.is_active,
+      })
+      .from(users)
+      .where(and(eq(users.userId, userId), eq(users.is_active, true)));
+    return result;
+  }
+
+  /**
+   * Check if user has OAuth placeholder phone number
+   */
+  static async hasOAuthPlaceholderPhone(userId: number) {
+    const [result] = await db
+      .select({ phoneNumber: users.phoneNumber })
+      .from(users)
+      .where(and(eq(users.userId, userId), eq(users.is_active, true)));
+
+    if (!result) return false;
+
+    // Check if it's an OAuth placeholder using the utility function
+    const { isOAuthPlaceholderPhone } = await import(
+      './utils/phoneNumber.util'
+    );
+    return isOAuthPlaceholderPhone(result.phoneNumber);
+  }
+
+  /**
+   * Get user's OTP info
+   */
+  static async getUserOtpInfo(userId: number) {
+    const [result] = await db
+      .select({
+        userId: users.userId,
+        otp_code: users.otp_code,
+        otp_expires_at: users.otp_expires_at,
+        phone_verified: users.phone_verified,
+      })
+      .from(users)
+      .where(and(eq(users.userId, userId), eq(users.is_active, true)));
+    return result || null;
+  }
+
+  /**
+   * Mark user's phone as verified and clear OTP
+   */
+  static async verifyPhoneAndClearOtp(userId: number) {
+    const [result] = await db
+      .update(users)
+      .set({
+        phone_verified: true,
+        otp_code: null as any,
+        otp_expires_at: null as any,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(users.userId, userId));
+    return result;
+  }
 }

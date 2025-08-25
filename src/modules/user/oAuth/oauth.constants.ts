@@ -48,6 +48,10 @@ export const OAUTH_SUCCESS_MESSAGES = {
   OAUTH_ACCOUNT_UNLINKED: 'OAuth account unlinked successfully',
   OAUTH_CONNECTIONS_RETRIEVED: 'OAuth connections retrieved successfully',
   OAUTH_CONNECTION_STATUS_RETRIEVED: 'Connection status retrieved successfully',
+  // New phone verification success messages
+  PHONE_VERIFICATION_INITIATED: 'Phone verification initiated successfully',
+  OTP_SENT_SUCCESSFULLY: 'OTP sent successfully to the phone number',
+  PHONE_NUMBER_UPDATED: 'Phone number updated successfully',
 } as const;
 
 export const OAuthAction = {
@@ -56,6 +60,10 @@ export const OAuthAction = {
   OAUTH_LINK: 'OAUTH_LINK',
   OAUTH_UNLINK: 'OAUTH_UNLINK',
   OAUTH_CALLBACK: 'OAUTH_CALLBACK',
+  // New phone verification actions
+  PHONE_VERIFICATION: 'PHONE_VERIFICATION',
+  OTP_GENERATION: 'OTP_GENERATION',
+  OTP_SENDING: 'OTP_SENDING',
 } as const;
 
 export const OAuthErrorCode = {
@@ -70,6 +78,13 @@ export const OAuthErrorCode = {
   OAUTH_UNLINKING_FAILED: 'OAUTH_UNLINKING_FAILED',
   DEFAULT_USER_TYPE_NOT_FOUND: 'DEFAULT_USER_TYPE_NOT_FOUND',
   OAUTH_ERROR: 'OAUTH_ERROR',
+  // New phone verification error codes
+  PHONE_VERIFICATION_FAILED: 'PHONE_VERIFICATION_FAILED',
+  PHONE_NUMBER_IN_USE: 'PHONE_NUMBER_IN_USE',
+  INVALID_PHONE_NUMBER: 'INVALID_PHONE_NUMBER',
+  PHONE_NOT_FOUND: 'PHONE_NOT_FOUND',
+  OTP_GENERATION_FAILED: 'OTP_GENERATION_FAILED',
+  OTP_SENDING_FAILED: 'OTP_SENDING_FAILED',
 } as const;
 
 export const OAuthMessage = {
@@ -91,6 +106,13 @@ export const OAuthMessage = {
     OAUTH_SUCCESS_MESSAGES.OAUTH_CONNECTIONS_RETRIEVED,
   OAUTH_CONNECTION_STATUS_RETRIEVED:
     OAUTH_SUCCESS_MESSAGES.OAUTH_CONNECTION_STATUS_RETRIEVED,
+  // New phone verification messages
+  PHONE_VERIFICATION_FAILED: 'Phone verification failed',
+  PHONE_NUMBER_IN_USE: 'Phone number is already in use by another user',
+  INVALID_PHONE_NUMBER: 'Invalid phone number format',
+  PHONE_NOT_FOUND: 'Phone number not found',
+  OTP_GENERATION_FAILED: 'Failed to generate OTP',
+  OTP_SENDING_FAILED: 'Failed to send OTP',
 } as const;
 
 export const OAuthConfig = {

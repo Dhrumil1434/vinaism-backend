@@ -16,6 +16,10 @@ import {
   oauthLoginApiResponseSchema,
   oauthManagementApiResponseSchema,
   oauthConnectionsApiResponseSchema,
+  phoneVerificationRequestSchema,
+  phoneVerificationApiResponseSchema,
+  phoneOtpVerifyRequestSchema,
+  phoneOtpVerifyApiResponseSchema,
 } from './validators/oauth.dto';
 import passport from '../../../config/passport.config';
 
@@ -383,6 +387,69 @@ export class OAuthController {
       });
 
       // Return validated response
+      return res.status(validatedResponse.statusCode).json(validatedResponse);
+    }
+  );
+
+  /**
+   * Initiate phone verification for OAuth users
+   * This endpoint allows OAuth users to verify their phone number
+   *
+   * Steps:
+   * 1. Extract phone number from request body
+   * 2. Get userId from authenticated user (requires auth middleware)
+   * 3. Call OAuthService.initiatePhoneVerification with userId and phone number
+   * 4. Return success response with verification details
+   * 5. Handle validation errors appropriately
+   */
+  static initiatePhoneVerification = asyncHandler(
+    async (req: Request, res: Response, _next: NextFunction) => {
+      // Get userId from authenticated user (requires auth middleware)
+      const userId = (req.user as any)?.userId;
+
+      // Validate user authentication
+      validateUserAuthentication(userId);
+
+      // Validate request body using DTO
+      const validatedData = phoneVerificationRequestSchema.parse(req.body);
+
+      // Initiate phone verification
+      const verificationResult = await OAuthService.initiatePhoneVerification(
+        userId,
+        validatedData.phoneNumber
+      );
+
+      // Validate response using DTO
+      const validatedResponse = phoneVerificationApiResponseSchema.parse({
+        statusCode: StatusCodes.OK,
+        data: verificationResult.data,
+        message: verificationResult.message,
+        success: true,
+      });
+
+      return res.status(validatedResponse.statusCode).json(validatedResponse);
+    }
+  );
+
+  /**
+   * Verify phone OTP for OAuth users
+   */
+  static verifyPhoneOtp = asyncHandler(
+    async (req: Request, res: Response, _next: NextFunction) => {
+      const userId = (req.user as any)?.userId;
+      validateUserAuthentication(userId);
+
+      const { otp } = phoneOtpVerifyRequestSchema.parse(req.body);
+
+      const result = await OAuthService.verifyPhoneOtp(userId, otp);
+
+      const validatedResponse = phoneOtpVerifyApiResponseSchema.parse({
+        statusCode: StatusCodes.OK,
+        data: result.data,
+        message: result.message,
+        success: true,
+      });
+
       return res.status(validatedResponse.statusCode).json(validatedResponse);
     }
   );

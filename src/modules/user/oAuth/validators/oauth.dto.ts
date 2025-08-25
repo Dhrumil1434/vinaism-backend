@@ -4,6 +4,7 @@ import {
   loginUserDataSchema,
   loginTokensSchema,
 } from '../../login/validators/login.dto';
+import { isValidPhoneNumberFormat } from '../utils/phoneNumber.util';
 
 // OAuth initiation request schema
 export const oauthInitiationSchemaDto = z.object({
@@ -111,6 +112,52 @@ export const oauthStatusApiResponseSchema = z.object({
   success: z.boolean(),
 });
 
+// New phone verification schemas
+export const phoneVerificationRequestSchema = z.object({
+  phoneNumber: z
+    .string()
+    .min(10, 'Phone number must be at least 10 digits')
+    .max(15, 'Phone number must not exceed 15 digits')
+    .refine((phone) => isValidPhoneNumberFormat(phone), {
+      message:
+        'Invalid phone number format. Please use a valid phone number with country code if needed.',
+    }),
+});
+
+export const phoneVerificationResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  data: z.object({
+    userId: z.number(),
+    phoneNumber: z.string(),
+    otpSent: z.boolean(),
+    message: z.string(),
+  }),
+});
+
+// Phone verification API response schema
+export const phoneVerificationApiResponseSchema = z.object({
+  statusCode: z.number().int(),
+  data: phoneVerificationResponseSchema.shape.data,
+  message: z.string(),
+  success: z.boolean(),
+});
+
+// Phone OTP verification schema
+export const phoneOtpVerifyRequestSchema = z.object({
+  otp: z.string().length(6, 'OTP must be 6 digits'),
+});
+
+export const phoneOtpVerifyApiResponseSchema = z.object({
+  statusCode: z.number().int(),
+  data: z.object({
+    userId: z.number(),
+    phone_verified: z.boolean(),
+  }),
+  message: z.string(),
+  success: z.boolean(),
+});
+
 // Export types
 export type OAuthInitiationRequest = z.infer<typeof oauthInitiationSchemaDto>;
 export type OAuthLinkRequest = z.infer<typeof oauthLinkSchemaDto>;
@@ -118,3 +165,11 @@ export type OAuthLoginData = z.infer<typeof oauthLoginDataSchema>;
 export type OAuthManagementData = z.infer<typeof oauthManagementDataSchema>;
 export type OAuthConnectionsData = z.infer<typeof oauthConnectionsDataSchema>;
 export type OAuthStatusData = z.infer<typeof oauthStatusDataSchema>;
+// New phone verification types
+export type PhoneVerificationRequest = z.infer<
+  typeof phoneVerificationRequestSchema
+>;
+export type PhoneVerificationResponse = z.infer<
+  typeof phoneVerificationResponseSchema
+>;
+export type PhoneOtpVerifyRequest = z.infer<typeof phoneOtpVerifyRequestSchema>;
