@@ -14,6 +14,7 @@ import otpRouter from './routes/otp.routes';
 import adminRouter from './routes/admin.routes';
 import loginRouter from './routes/login.routes';
 import oauthRouter from './routes/oauth.routes';
+import notificationRouter from './routes/notification.routes';
 
 class App {
   public app: Application;
@@ -78,6 +79,7 @@ class App {
     this.app.use('/api/admin', adminRouter);
     this.app.use('/api/userLogin', loginRouter);
     this.app.use('/api/auth', oauthRouter);
+    this.app.use('/api/notifications', notificationRouter);
 
     // Add more routes here or import from separate files
   }

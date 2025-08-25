@@ -23,6 +23,8 @@ import { UserRegistrationService } from './registration.service';
 import { ApiResponse } from '@utils-core';
 import { StatusCodes } from 'http-status-codes';
 import { UserRegistrationMessage } from './registration.constants';
+import { NotificationService } from 'modules/notification/notification.service';
+import { NotificationKind } from 'modules/notification/notification.constants';
 
 configDotenv();
 
@@ -53,6 +55,12 @@ export class UserRegistrationController {
 
       const registeredUser =
         await UserRegistrationService.registerUser(userDataForService);
+
+      await NotificationService.notify({
+        type: NotificationKind.Approval,
+        to: { userId: 41 }, // admin userId
+        message: `New user registered: ${registeredUser.email} (userId: ${registeredUser.userId})`,
+      });
 
       const responseData = UserRegistrationResponseSchema.parse(registeredUser);
 
