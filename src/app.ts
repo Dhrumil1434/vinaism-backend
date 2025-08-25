@@ -15,6 +15,8 @@ import adminRouter from './routes/admin.routes';
 import loginRouter from './routes/login.routes';
 import oauthRouter from './routes/oauth.routes';
 import notificationRouter from './routes/notification.routes';
+import activityLogRouter from './routes/activityLog.routes';
+import { captureActivity } from './middlewares/activityCapture.middleware';
 
 class App {
   public app: Application;
@@ -70,6 +72,9 @@ class App {
     // Initialize Passport with our configuration
     this.app.use(initializePassport());
     this.app.use(passport.session());
+
+    // Apply activity capture middleware globally
+    this.app.use(captureActivity);
   }
 
   private setRoutes(): void {
@@ -80,6 +85,7 @@ class App {
     this.app.use('/api/userLogin', loginRouter);
     this.app.use('/api/auth', oauthRouter);
     this.app.use('/api/notifications', notificationRouter);
+    this.app.use('/api/activity-logs', activityLogRouter);
 
     // Add more routes here or import from separate files
   }
