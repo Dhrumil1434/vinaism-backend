@@ -11,6 +11,8 @@ import {
   userTypeUpdateSchema,
 } from 'modules/user/userTypes/validators/userType.validator';
 import { captureActivityAfterAuth } from '../middlewares/activityCapture.middleware';
+import { requireAbility } from 'middlewares/ability.middleware';
+import { Action, Subject } from 'modules/auth/casl/casl.enum';
 
 const router = Router();
 
@@ -24,6 +26,7 @@ router.get(
   '/',
   authenticateToken,
   captureActivityAfterAuth,
+  requireAbility(Action.READ, Subject.USER_TYPE),
   UserTypeController.getPaginatedUserTypes
 );
 
