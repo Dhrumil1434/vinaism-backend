@@ -11,8 +11,8 @@ export class ActivityLogService {
   static async capture(data: {
     endpoint: string;
     httpMethod: string;
-    userAgent?: string;
-    ipAddress?: string;
+    userAgent?: string | undefined;
+    ipAddress?: string | undefined;
     requestBody?: any;
     requestParams?: any;
     requestQuery?: any;
@@ -24,6 +24,7 @@ export class ActivityLogService {
     success?: boolean;
     timestamp: Date;
     sessionId?: string;
+    user?: any;
   }) {
     try {
       // Determine action type based on HTTP method and endpoint
@@ -57,6 +58,7 @@ export class ActivityLogService {
           userId: data.userId,
           userType: data.userType,
           sessionId: data.sessionId,
+          user: data.user, // Complete user object for detailed context
         },
         businessContext: this.extractBusinessContext(data),
         systemContext: {

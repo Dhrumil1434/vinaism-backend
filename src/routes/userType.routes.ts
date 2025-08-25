@@ -1,3 +1,4 @@
+import { authenticateToken } from '@middleware-core';
 import { Router } from 'express';
 import {
   validateBody,
@@ -9,6 +10,7 @@ import {
   userTypeIdParamSchema,
   userTypeUpdateSchema,
 } from 'modules/user/userTypes/validators/userType.validator';
+import { captureActivityAfterAuth } from '../middlewares/activityCapture.middleware';
 
 const router = Router();
 
@@ -18,7 +20,12 @@ router.post(
   UserTypeController.createUserType
 );
 
-router.get('/', UserTypeController.getPaginatedUserTypes);
+router.get(
+  '/',
+  authenticateToken,
+  captureActivityAfterAuth,
+  UserTypeController.getPaginatedUserTypes
+);
 
 router.get('/all', UserTypeController.getAllUserTypes);
 
@@ -31,7 +38,9 @@ router.put(
 
 router.patch(
   '/:userTypeId/active',
+  authenticateToken,
   validateParams(userTypeIdParamSchema),
+  captureActivityAfterAuth,
   UserTypeController.softDeleteUserType
 );
 
