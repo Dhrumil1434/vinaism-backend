@@ -111,7 +111,7 @@ export class LoginController {
         success: true,
       });
 
-      res.status(validatedResponse.statusCode).json(validatedResponse);
+      return res.status(validatedResponse.statusCode).json(validatedResponse);
     }
   );
 
@@ -197,7 +197,7 @@ export class LoginController {
         success: true,
       });
 
-      res.status(validatedResponse.statusCode).json(validatedResponse);
+      return res.status(validatedResponse.statusCode).json(validatedResponse);
     }
   );
 
@@ -219,7 +219,7 @@ export class LoginController {
 
       const sessions = await LoginService.getUserActiveSessions(userId);
 
-      res.status(StatusCodes.OK).json({
+      return res.status(StatusCodes.OK).json({
         statusCode: StatusCodes.OK,
         data: sessions,
         message: 'Active sessions retrieved successfully',
