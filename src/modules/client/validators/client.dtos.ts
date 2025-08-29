@@ -102,3 +102,6 @@ export const PaginatedClientResponseDto = z
     success: z.boolean(),
   })
   .strict();
+
+export type ICreateClientDto = z.infer<typeof clientCreateDto>;
+export type IClientResponseDto = z.infer<typeof clientSchemaResponse>;
