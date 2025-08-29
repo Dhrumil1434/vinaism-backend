@@ -23,6 +23,7 @@ const billingFirmName = z
   .transform((val) => val.toLowerCase());
 const officeMobileNumber = z
   .string()
+  .length(10, clientZodMessage.INVALID_PHONE)
   .regex(/^[0-9]{10,15}$/, clientZodMessage.INVALID_PHONE)
   .nonempty(clientZodMessage.PHONE_REQUIRED);
 const companyLogo = z
