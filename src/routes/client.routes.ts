@@ -5,6 +5,7 @@ import { requireAbility } from 'middlewares/ability.middleware';
 import { Action, Subject } from 'modules/auth/casl/casl.enum';
 import {
   companyLogoPreValidator,
+  saveBufferedLogo,
   uploadClientLogo,
 } from 'modules/client/middlewares/clientMulter.middleware';
 import { clientCreateDto } from 'modules/client/validators/client.dtos';
@@ -18,6 +19,7 @@ router.post(
   uploadClientLogo,
   companyLogoPreValidator,
   validateBody(clientCreateDto),
+  saveBufferedLogo,
   asyncHandler(async (req: Request) => {
     console.log(req.body);
   })

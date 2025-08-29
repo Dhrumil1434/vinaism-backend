@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { clientZodMessage } from '../client.constatns';
+import { clientZodMessage } from '../client.constants';
 import { paginationMetaSchema } from 'modules/user/oAuth/validators/oauth.dtos';
 
 // client schema data fields
