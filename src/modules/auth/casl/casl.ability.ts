@@ -20,6 +20,7 @@ export function defineAbilities(userType: IUserTypeNameOnly) {
       break;
 
     case UserTypes.CLIENT:
+      can(Action.CREATE, Subject.CLIENT);
       can(Action.MANAGE, Subject.PROJECT);
       cannot(Action.MANAGE, Subject.USER_TYPE);
       can(Action.READ, Subject.TASK_ASSIGNMENT);

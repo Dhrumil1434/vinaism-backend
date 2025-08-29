@@ -1,0 +1,26 @@
+import { authenticateToken, validateBody } from '@middleware-core';
+import { asyncHandler } from '@utils-core';
+import { Request, Router } from 'express';
+import { requireAbility } from 'middlewares/ability.middleware';
+import { Action, Subject } from 'modules/auth/casl/casl.enum';
+import {
+  companyLogoPreValidator,
+  uploadClientLogo,
+} from 'modules/client/middlewares/clientMulter.middleware';
+import { clientCreateDto } from 'modules/client/validators/client.dtos';
+
+const router = Router();
+
+router.post(
+  '/create',
+  authenticateToken,
+  requireAbility(Action.CREATE, Subject.CLIENT),
+  uploadClientLogo,
+  companyLogoPreValidator,
+  validateBody(clientCreateDto),
+  asyncHandler(async (req: Request) => {
+    console.log(req.body);
+  })
+);
+
+export default router;

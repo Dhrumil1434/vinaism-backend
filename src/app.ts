@@ -16,7 +16,7 @@ import loginRouter from './routes/login.routes';
 import oauthRouter from './routes/oauth.routes';
 import notificationRouter from './routes/notification.routes';
 import activityLogRouter from './routes/activityLog.routes';
-
+import clientRouter from './routes/client.routes';
 class App {
   public app: Application;
 
@@ -82,7 +82,7 @@ class App {
     this.app.use('/api/auth', oauthRouter);
     this.app.use('/api/notifications', notificationRouter);
     this.app.use('/api/activity-logs', activityLogRouter);
-
+    this.app.use('/api/client', clientRouter);
     // Add more routes here or import from separate files
   }
 
