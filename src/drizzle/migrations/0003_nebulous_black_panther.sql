@@ -1,0 +1,1 @@
+ALTER TABLE `clients` ADD `company_logo` varchar(200);
