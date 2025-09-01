@@ -1,4 +1,8 @@
-import { authenticateToken, validateBody } from '@middleware-core';
+import {
+  authenticateToken,
+  validateBody,
+  validateQuery,
+} from '@middleware-core';
 import { Router } from 'express';
 import { requireAbility } from 'middlewares/ability.middleware';
 import { Action, Subject } from 'modules/auth/casl/casl.enum';
@@ -8,7 +12,10 @@ import {
   saveBufferedLogo,
   uploadClientLogo,
 } from 'modules/client/middlewares/clientMulter.middleware';
-import { clientCreateDto } from 'modules/client/validators/client.dtos';
+import {
+  clientCreateDto,
+  ClientFilterDto,
+} from 'modules/client/validators/client.dtos';
 
 const router = Router();
 
@@ -21,6 +28,14 @@ router.post(
   validateBody(clientCreateDto),
   saveBufferedLogo,
   ClientController.createClientRecord
+);
+
+router.get(
+  '/',
+  authenticateToken,
+  requireAbility(Action.READ, Subject.CLIENT),
+  validateQuery(ClientFilterDto),
+  ClientController.getPaginatedClient
 );
 
 export default router;

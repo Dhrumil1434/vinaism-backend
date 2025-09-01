@@ -32,7 +32,7 @@ const companyLogo = z
   .optional();
 const createdAt = z.date().or(z.string());
 const updatedAt = z.date().or(z.string());
-const isActive = z.boolean().default(true);
+
 export const clientSchemaResponse = z
   .object({
     userId: userId,
@@ -43,7 +43,7 @@ export const clientSchemaResponse = z
     createdAt: createdAt,
     updatedAt: updatedAt,
     companyLogo: companyLogo,
-    is_active: isActive,
+    is_active: z.boolean().nullable(),
   })
   .strict();
 
@@ -67,23 +67,34 @@ export const clientUpdateDto = clientSchemaResponse
   .strict();
 
 const clientArrayResponse = z.array(clientSchemaResponse);
-const baseClientFilter = clientSchemaResponse.pick({
-  userId: true,
-  clientId: true,
-  billingFirmName: true,
-  officeMobileNumber: true,
+const baseClientFilter = z.object({
+  userId: z.coerce.number().int().positive().optional(),
+  clientId: z.coerce.number().int().positive().optional(),
+  billingFirmName: z.string().optional(),
+  officeMobileNumber: z.string().optional(),
 });
+
 export const ClientFilterDto = baseClientFilter
   .extend({
-    clientId: z.string().optional(), // For query params
-    userId: z.string().optional(),
+    // Pagination fields
+    page: z.coerce.number().int().positive().default(1),
+    limit: z.coerce.number().int().positive().max(100).default(10),
+
+    // Filter fields (already optional from baseClientFilter.partial())
+    // userId: optional
+    // clientId: optional
+    // billingFirmName: optional
+    // officeMobileNumber: optional
+
+    // Additional filter fields
     is_active: z
       .preprocess((val) => {
         if (typeof val === 'string') return val === 'true';
         return val;
       }, z.boolean())
       .optional(),
-    // Add sorting
+
+    // Sorting fields
     sortBy: z
       .enum(['clientId', 'userId', 'billingFirmName', 'createdAt', 'updatedAt'])
       .optional(),
@@ -106,3 +117,4 @@ export const PaginatedClientResponseDto = z
 
 export type ICreateClientDto = z.infer<typeof clientCreateDto>;
 export type IClientResponseDto = z.infer<typeof clientSchemaResponse>;
+export type IClientFilterDto = z.infer<typeof ClientFilterDto>;

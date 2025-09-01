@@ -7,6 +7,7 @@ export const clientZodMessage = {
 };
 export const clientAction = {
   CREATE_CLIENT: 'CREATE_CLIENT',
+  GET_CLIENT: 'GET_CLIENT',
 };
 export const clientMessage = {
   GST_NUMBER_CONFLICT: 'GST number already exists !',
@@ -14,9 +15,11 @@ export const clientMessage = {
   CLIENT_MOBILE_NUMBER_CONFLICT:
     'Mobile number is associated with other client !',
   CREATED: 'Client is created successfully !',
+  INVALID_PARAMS: 'Kindly use proper parameters for get client !',
 };
 export const clientError = {
   GST_NUMBER_CONFLICT: 'GST_ALREADY_EXISTS',
   CLIENT_CONFLICT: 'CLIENT_ALREADY_EXISTS',
   CLIENT_MOBILE_NUMBER_CONFLICT: 'MOBILE_NUMBER_ALREADY_EXISTS',
+  INVALID_PARAMS: 'INVALID_PARAMETERS_WERE_USED',
 };

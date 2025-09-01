@@ -22,7 +22,6 @@ import { StatusCodes } from 'http-status-codes';
 export const requireAbility = (action: Action, subject: Subject) => {
   return (req: Request, _res: Response, next: NextFunction) => {
     const user = (req as any).user;
-    console.log(user);
     if (!user) {
       return next(
         new ApiError(

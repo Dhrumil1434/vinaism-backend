@@ -99,7 +99,7 @@ export const validateQuery = <T>(schema: z.ZodSchema<T>) => {
     // req.query are typically strings, so the schema should handle type coercion if needed.
     const validated = handleValidation(schema, req.query, 'query', next);
     if (validated !== undefined) {
-      req.query = validated as any; // Cast to any because req.query is typically string-indexed
+      (req as any).validatedQuery = validated as any; // Cast to any because req.query is typically string-indexed
       next();
     }
   };
