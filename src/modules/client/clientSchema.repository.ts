@@ -19,7 +19,7 @@ export class ClientSchemaRepo {
             )
           : eq(client.gstNumber, gstNumber)
       );
-    return existingClient.length > 1;
+    return existingClient.length > 0;
   }
   static async validateUserClientUniqueness(
     userId: number,
@@ -55,7 +55,7 @@ export class ClientSchemaRepo {
               eq(client.gstNumber, gstNumber)
             )
       );
-    return existingClient.length > 1;
+    return existingClient.length > 0;
   }
   static async validateMobileUniqueness(
     officeMobileNumber: IClientResponseDto['officeMobileNumber'],
@@ -72,6 +72,22 @@ export class ClientSchemaRepo {
             )
           : eq(client.officeMobileNumber, officeMobileNumber)
       );
-    return existingClient.length > 1;
+    return existingClient.length > 0;
+  }
+  static async createClient(clientData: ICreateClientDto & { userId: number }) {
+    const [insertingClient] = await db.insert(client).values({
+      userId: clientData.userId,
+      gstNumber: clientData.gstNumber,
+      billingFirmName: clientData.billingFirmName,
+      officeMobileNumber: clientData.officeMobileNumber,
+      companyLogo: clientData.companyLogo,
+    });
+    const insertedId = insertingClient.insertId;
+    const [newClient] = await db
+      .select()
+      .from(client)
+      .where(eq(client.clientId, insertedId));
+
+    return newClient;
   }
 }

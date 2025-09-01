@@ -32,7 +32,7 @@ const companyLogo = z
   .optional();
 const createdAt = z.date().or(z.string());
 const updatedAt = z.date().or(z.string());
-
+const isActive = z.boolean().default(true);
 export const clientSchemaResponse = z
   .object({
     userId: userId,
@@ -43,6 +43,7 @@ export const clientSchemaResponse = z
     createdAt: createdAt,
     updatedAt: updatedAt,
     companyLogo: companyLogo,
+    is_active: isActive,
   })
   .strict();
 

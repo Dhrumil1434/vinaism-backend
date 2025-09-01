@@ -13,6 +13,7 @@ export const clientMessage = {
   CLIENT_CONFLICT: 'Client already exists !',
   CLIENT_MOBILE_NUMBER_CONFLICT:
     'Mobile number is associated with other client !',
+  CREATED: 'Client is created successfully !',
 };
 export const clientError = {
   GST_NUMBER_CONFLICT: 'GST_ALREADY_EXISTS',

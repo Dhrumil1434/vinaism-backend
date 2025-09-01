@@ -1,8 +1,8 @@
 import { authenticateToken, validateBody } from '@middleware-core';
-import { asyncHandler } from '@utils-core';
-import { Request, Router } from 'express';
+import { Router } from 'express';
 import { requireAbility } from 'middlewares/ability.middleware';
 import { Action, Subject } from 'modules/auth/casl/casl.enum';
+import { ClientController } from 'modules/client/client.controller';
 import {
   companyLogoPreValidator,
   saveBufferedLogo,
@@ -20,9 +20,7 @@ router.post(
   companyLogoPreValidator,
   validateBody(clientCreateDto),
   saveBufferedLogo,
-  asyncHandler(async (req: Request) => {
-    console.log(req.body);
-  })
+  ClientController.createClientRecord
 );
 
 export default router;
