@@ -29,6 +29,13 @@
       "when": 1756461009387,
       "tag": "0003_nebulous_black_panther",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1756805109275,
+      "tag": "0004_flat_franklin_richards",
+      "breakpoints": true
     }
   ]
 }
